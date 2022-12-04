@@ -1,22 +1,24 @@
 var express = require("express");
 var router = express.Router();
+const jwt = require("jsonwebtoken");
 const User = require("../Models/user");
+let config = require("../config");
 
 /* GET users routes. */
 router.get("/", function (req, res, next) {
   res.send("respond with a resource");
 });
 
-// router.get("/viewUser/:uid", function (req, res, next) {
-//   User.findById(req.params.id).exec((error,result))=>{
-//     if(error){
-//       return next(error);
-//     }
-//     else{
-//       res.json(result);
-//     }
-//   }
-// });
+router.get("/viewUser/:uid", function (req, res, next) {
+  User.findById(req.params.id).exec((error,result))=>{
+    if(error){
+      return next(error);
+    }
+    else{
+      res.json(result);
+    }
+  }
+});
 
 /* POST user routes. */
 router.post("/createUser", async function (req, res, next) {
@@ -32,13 +34,31 @@ router.post("/createUser", async function (req, res, next) {
           res.statusCode = 200;
           res.setHeader("Content-Type", "application/json");
           res.json(user);
+          res.send("User added successfully");
         },
         (err) => next(err)
       )
       .catch((err) => next(err));
   }
 });
-
+router.post("/login", async (req, res) => {
+  console.log(req.body);
+  const user = await User.findOne({ email: req.body.email });
+  console.log(user.password);
+  console.log(req.body.password);
+  if (user == null) {
+    return res.status(400).send("Email or password is wrong");
+  } else {
+    if (req.body.password == user.password) {
+      res.statusCode = 200;
+      let token = jwt.sign({ _id: user._id }, config.secret);
+      res.statusCode = 200;
+      res.header("auth-token", token).send(token);
+    } else {
+      return res.status(400).send("Email or password is wrong");
+    }
+  }
+});
 /*Delte user route. */
 router.delete("/deleteUser/:uid", function (req, res, next) {
   User.deleteOne({ _id: req.params.id }, function (err, result) {
