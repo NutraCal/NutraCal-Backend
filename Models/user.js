@@ -53,6 +53,10 @@ var userSchema = new Schema({
     type: String,
     required: true,
   },
+  bmi: {
+    type: Number,
+  },
+
   waterIntake: {
     type: [
       {

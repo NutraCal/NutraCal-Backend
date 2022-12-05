@@ -2,54 +2,62 @@ var express = require("express");
 var router = express.Router();
 const jwt = require("jsonwebtoken");
 const User = require("../Models/user");
+const bcrypt = require("bcrypt");
 let config = require("../config");
 
-/* GET users routes. */
-router.get("/", function (req, res, next) {
+/* GET users routes. */ router.get("/", function (req, res, next) {
   res.send("respond with a resource");
 });
 
-router.get("/viewUser/:uid", function (req, res, next) {
-  User.findById(req.params.id).exec((error,result))=>{
-    if(error){
+router.get("/viewUser/:email", function (req, res, next) {
+  User.find({ email: req.params.email }).exec(async function (error, results) {
+    if (error) {
       return next(error);
     }
-    else{
-      res.json(result);
-    }
-  }
+    // Respond with valid data
+    res.json(results);
+  });
 });
 
 /* POST user routes. */
 router.post("/createUser", async function (req, res, next) {
+  const salt = await bcrypt.genSalt(10);
+  const hashPassword = await bcrypt.hash(req.body.password, salt);
   console.log(req.body);
   const emailExists = await User.findOne({ email: req.body.email });
   if (emailExists) {
     return res.status(400).send("Email allready exists");
   } else {
-    User.create(req.body)
-      .then(
-        (user) => {
-          console.log("User added ", user);
-          res.statusCode = 200;
-          res.setHeader("Content-Type", "application/json");
-          res.json(user);
-          res.send("User added successfully");
-        },
-        (err) => next(err)
-      )
-      .catch((err) => next(err));
+    const user = new User({
+      email: req.body.email,
+      password: hashPassword,
+      fitnessGoal: req.body.fitnessGoal,
+      gender: req.body.gender,
+      age: req.body.age,
+      height: req.body.height,
+      heightUnit: req.body.heightUnit,
+      weight: req.body.weight,
+      weightUnit: req.body.weightUnit,
+      allergies: req.body.allergies,
+      diet: req.body.diet,
+      ingredients: req.body.ingredients,
+    });
+    try {
+      const savedUser = await user.save();
+      return res.status(200).send("User added successfully");
+    } catch (err) {
+      console.log(err);
+    }
   }
 });
 router.post("/login", async (req, res) => {
   console.log(req.body);
   const user = await User.findOne({ email: req.body.email });
-  console.log(user.password);
-  console.log(req.body.password);
   if (user == null) {
     return res.status(400).send("Email or password is wrong");
   } else {
-    if (req.body.password == user.password) {
+    const validPass = await bcrypt.compare(req.body.password, user.password);
+    if (validPass) {
       res.statusCode = 200;
       let token = jwt.sign({ _id: user._id }, config.secret);
       res.statusCode = 200;
@@ -60,18 +68,19 @@ router.post("/login", async (req, res) => {
   }
 });
 /*Delte user route. */
-router.delete("/deleteUser/:uid", function (req, res, next) {
-  User.deleteOne({ _id: req.params.id }, function (err, result) {
+router.delete("/deleteUser/:email", function (req, res, next) {
+  User.deleteOne({ email: req.params.email }, function (err, result) {
     if (err) return next(err);
     res.json(result);
   });
 });
 
 /* PUT user route. */
-router.put("/findBmi/:uid", (req, res, next) => {
+router.put("/findBmi/:email/:bmi", (req, res, next) => {
+  console.log(req.params.bmi);
   User.findOneAndUpdate(
-    { _id: req.params.id },
-    { bmi: req.body.bmi },
+    { email: req.params.email },
+    { bmi: req.params.bmi },
     function (err, result) {
       if (err) {
         return next(err);
