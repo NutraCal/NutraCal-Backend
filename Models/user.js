@@ -5,6 +5,9 @@ var userSchema = new Schema({
     type: String,
     required: true,
   },
+  goal: {
+    type: String,
+  },
   password: {
     type: String,
     required: true,
@@ -60,18 +63,15 @@ var userSchema = new Schema({
   waterIntake: {
     type: [
       {
-        waterIntake: {
+        water: {
           type: Number,
-          default: 0,
         },
         date: {
-          type: Date,
-          default: Date.now,
+          type: String,
         },
       },
     ],
   },
-
   calories: {
     type: [
       {
@@ -79,9 +79,20 @@ var userSchema = new Schema({
           type: Number,
           default: 0,
         },
+        proteinsIntake: {
+          type: Number,
+          default: 0,
+        },
+        fatsIntake: {
+          type: Number,
+          default: 0,
+        },
+        carbsIntake: {
+          type: Number,
+          default: 0,
+        },
         date: {
-          type: Date,
-          default: Date.now,
+          type: String,
         },
       },
     ],
@@ -94,8 +105,23 @@ var userSchema = new Schema({
           default: 0,
         },
         date: {
-          type: Date,
-          default: Date.now,
+          type: String,
+        },
+      },
+    ],
+  },
+  appointments: {
+    type: [
+      {
+        nutritionist: {
+          type: mongoose.Types.ObjectId,
+          ref: "Nutritionist",
+        },
+        date: {
+          type: String,
+        },
+        time: {
+          type: String,
         },
       },
     ],

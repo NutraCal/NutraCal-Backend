@@ -1,53 +1,47 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 const blogsSchema = new Schema({
-  user: {
+  User: {
     type: mongoose.Types.ObjectId,
     ref: "User",
     required: true,
   },
-  blogTitle: {
+  Title: {
     type: String,
     required: true,
   },
-  content: {
+  Content: {
     type: String,
     required: true,
   },
-  likesCount: {
+  LikesCount: {
     type: Number,
     required: true,
     default: 0,
   },
-  comments: {
+  Comments: {
     type: [
       {
         userId: {
           type: mongoose.Types.ObjectId,
-          required: true,
         },
         comment: {
           type: String,
-          required: true,
         },
         date: {
           type: String,
-          required: true,
           default: Date.now,
         },
         replies: [
           {
             userId: {
               type: mongoose.Types.ObjectId,
-              required: true,
             },
             comment: {
               type: String,
-              required: true,
             },
             date: {
               type: String,
-              required: true,
               default: Date.now,
             },
           },
@@ -55,10 +49,13 @@ const blogsSchema = new Schema({
       },
     ],
   },
-  dateCreated: {
+  DateCreated: {
     type: Date,
-    required: true,
     default: Date.now,
+  },
+  Approved: {
+    type: Number,
+    default: 0,
   },
 });
 
