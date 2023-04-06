@@ -6,11 +6,15 @@ const recipeController = require("../Controller/recipeController");
 
 router.get("/viewRecipes", recipeController.viewRecipes);
 router.get("/viewRecipeByName", recipeController.viewRecipeByName);
-router.get("/detectText", recipeController.detectText);
+router.post("/detectText", recipeController.detectText);
 router.put("/editRecipe", recipeController.editRecipe);
 router.put("/edit/likes", recipeController.updateLikes);
 router.put("/approveRecipe", recipeController.approveRecipe);
 router.delete("/deleteRecipe", recipeController.deleteRecipe);
+router.post("/filterRecipe", recipeController.filterRecipe);
+router.post("/addRecipe", recipeController.addRecipe);
+router.post("/userRecipes", recipeController.userRecipes);
+router.post("/searchRecipes", recipeController.searchRecipes);
 
 // /* POST user routes. */
 // router.post("/addRecipe", function(req,res,next){

@@ -16,6 +16,7 @@ var usersRouter = require("./routes/user");
 var recipesRouter = require("./routes/recipes");
 var shopRouter = require("./routes/shopList");
 var mealRouter = require("./routes/meals");
+var blogRouter = require("./routes/blogs");
 
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
@@ -31,6 +32,7 @@ app.use("/recipes", recipesRouter);
 app.use("/meals", mealRouter);
 app.use("/shoppingList", shopRouter);
 app.use("/users", usersRouter);
+app.use("/blogs", blogRouter);
 
 app.all("*", (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));

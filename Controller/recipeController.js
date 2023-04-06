@@ -9,6 +9,7 @@ const private_key =
 const client_email = "sa-nutracal-ocr@nutracal-ocr.iam.gserviceaccount.com";
 
 exports.detectText = catchAsync(async (req, res, next) => {
+  console.log(req.body);
   const client = new vision.ImageAnnotatorClient({
     credentials: {
       private_key: private_key,
@@ -25,16 +26,77 @@ exports.detectText = catchAsync(async (req, res, next) => {
   }
 });
 
+exports.addRecipe = catchAsync(async (req, res, next) => {
+  console.log(req.body);
+  const {
+    user,
+    title,
+    category,
+    quantity,
+    recipeMethod,
+    ingredients,
+    calories,
+    proteins,
+    fats,
+    carbs,
+    allergies,
+    servingSize,
+  } = req.body;
+
+  if (
+    !user ||
+    !title ||
+    !category ||
+    !quantity ||
+    !recipeMethod ||
+    !ingredients ||
+    !calories ||
+    !proteins ||
+    !fats ||
+    !carbs ||
+    !allergies ||
+    !servingSize
+  ) {
+    return res.status(400).send("Please fill all the fields");
+  }
+
+  const recipe = new Recipes({
+    User: user,
+    Title: title,
+    Category: category,
+    Quantity: quantity,
+    RecipeMethod: recipeMethod,
+    Ingredients: ingredients,
+    Calories: calories,
+    Proteins: proteins,
+    Fats: fats,
+    Carbs: carbs,
+    Allergies: allergies,
+    ServingSize: servingSize,
+  });
+  try {
+    const savedUser = await recipe.save();
+    return res.status(200).send("Recipe added successfully");
+  } catch (err) {
+    res.status(500).send(err.message);
+    console.log(err);
+  }
+});
+
 exports.viewRecipes = catchAsync(async (req, res, next) => {
-  Recipes.find()
-    .populate("User")
-    .exec((error, result) => {
-      if (error) {
-        return next(error);
-      } else {
-        res.json(result);
-      }
-    });
+  try {
+    Recipes.find()
+      .populate("User")
+      .exec((error, result) => {
+        if (error) {
+          res.status(500).send(error);
+        } else {
+          res.status(200).json(result);
+        }
+      });
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
 });
 
 exports.viewRecipeByName = catchAsync(async (req, res, next) => {
@@ -48,10 +110,16 @@ exports.viewRecipeByName = catchAsync(async (req, res, next) => {
 });
 
 exports.deleteRecipe = catchAsync(async (req, res, next) => {
-  Recipes.deleteOne({ Title: req.body.title }, function (err, result) {
-    if (err) return next(err);
-    res.json(result);
-  });
+  try {
+    Recipes.deleteOne({ Title: req.body.title }, function (err, result) {
+      if (err) {
+        res.status(500).send(err);
+      }
+      res.status(200).json(result);
+    });
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
 });
 
 exports.editRecipe = catchAsync(async (req, res, next) => {
@@ -66,7 +134,7 @@ exports.editRecipe = catchAsync(async (req, res, next) => {
     },
     function (err, result) {
       if (err) {
-        return next(err);
+        res.status(500).send(err);
       }
       res.status(200).json(result);
     }
@@ -81,7 +149,7 @@ exports.updateLikes = catchAsync(async (req, res, next) => {
     },
     function (err, result) {
       if (err) {
-        return next(err);
+        res.status(500).send(err);
       }
       res.status(200).json(result);
     }
@@ -97,9 +165,67 @@ exports.approveRecipe = catchAsync(async (req, res, next) => {
     },
     function (err, result) {
       if (err) {
-        return next(err);
+        res.status(500).send(err);
       }
       res.status(200).json(result);
     }
   );
+});
+
+exports.filterRecipe = catchAsync(async (req, res, next) => {
+  try {
+    const category = req.body.category;
+    const ingredients = req.body.ingredients
+      ? req.body.ingredients.split(",")
+      : [];
+    const caloriesMin = req.body.calories_min
+      ? parseInt(req.body.calories_min)
+      : 0;
+    const caloriesMax = req.body.calories_max
+      ? parseInt(req.body.calories_max)
+      : Infinity;
+
+    let query = {};
+    if (category) {
+      query.Category = category;
+    }
+    if (ingredients.length > 0) {
+      query.Ingredients = { $all: ingredients };
+    }
+    if (caloriesMin && caloriesMax) {
+      query.Calories = { $gte: caloriesMin, $lte: caloriesMax };
+    }
+    const recipes = await Recipes.find(query);
+    console.log(recipes);
+    res.status(200).json(recipes);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server Error");
+  }
+});
+
+exports.userRecipes = catchAsync(async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email: req.body.email });
+    const userId = user._id;
+    console.log(userId);
+    recipes = await Recipes.find({ User: userId });
+    res.json(recipes);
+  } catch (err) {
+    console.error(err.message);
+  }
+});
+
+exports.searchRecipes = catchAsync(async (req, res, next) => {
+  try {
+    const recipes = await Recipes.find({ Title: req.body.title });
+    if (recipes == null) {
+      return res.status(500).json({ message: "No recipes found" });
+    } else {
+      res.status(200).json(recipes);
+    }
+  } catch (err) {
+    console.error(err.message);
+  }
 });

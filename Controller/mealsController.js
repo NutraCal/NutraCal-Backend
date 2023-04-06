@@ -4,15 +4,26 @@ const Meals = require("../Models/meals");
 const User = require("../Models/user");
 
 exports.getMeal = catchAsync(async (req, res, next) => {
-  Meals.find({ user: req.body.userId }).exec(async function (error, results) {
+  const user = await User.findOne({ email: req.params.email });
+  if (!user) {
+    return res.status(400).send("User not found");
+  }
+  const userId = user._id;
+  Meals.find({ user: userId }).exec(async function (error, results) {
     if (error) {
-      return next(error);
+      res.status(500).send(error);
     }
     res.json(results);
   });
 });
 
 exports.addMeal = catchAsync(async (req, res, next) => {
+  const user = await User.findOne({ email: req.params.email });
+  if (!user) {
+    return res.status(400).send("User not found");
+  }
+  const userId = user._id;
+
   const now = new Date();
   const currDate =
     now.getFullYear() +
@@ -20,8 +31,7 @@ exports.addMeal = catchAsync(async (req, res, next) => {
     (now.getMonth() + 1).toString().padStart(2, "0") +
     "-" +
     now.getDate();
-  const { userId, name, category, calories, proteins, fats, carbohydrates } =
-    req.body;
+  const { name, category, calories, proteins, fats, carbohydrates } = req.body;
   if (
     !userId ||
     !name ||
@@ -84,7 +94,12 @@ exports.updateMeal = catchAsync(async (req, res, next) => {
   );
 });
 exports.deleteAllMeals = catchAsync(async (req, res, next) => {
-  Meals.deleteMany({ user: req.body.userId }, function (err, result) {
+  const user = await User.findOne({ email: req.body.email });
+  if (!user) {
+    return res.status(400).send("User not found");
+  }
+  const userId = user._id;
+  Meals.deleteMany({ user: userId }, function (err, result) {
     if (err) {
       res.status(400).send("Can't clear the shopping list, try again");
       return next(err);
@@ -104,10 +119,11 @@ exports.deleteMeal = catchAsync(async (req, res, next) => {
 
 exports.updateCalories = catchAsync(async (req, res, next) => {
   try {
-    const { userId, dateExt, email } = req.body;
-    const date2 = req.body.date;
-    console.log(typeof date2);
-    const date = date2.split("T")[0];
+    const user = await User.findOne({ email: req.body.email });
+    if (!user) {
+      return res.status(400).send("User not found");
+    }
+    const userId = user._id;
     const now = new Date();
     const currDate =
       now.getFullYear() +
@@ -115,9 +131,8 @@ exports.updateCalories = catchAsync(async (req, res, next) => {
       (now.getMonth() + 1).toString().padStart(2, "0") +
       "-" +
       now.getDate();
-    console.log(currDate);
-    console.log(date); // "2023-03-19"
-    const meals = await Meals.find({ user: userId, date: date });
+    console.log(currDate); // "2023-03-19"
+    const meals = await Meals.find({ user: userId, date: currDate });
     const nutrientSums = {
       calories: 0,
       proteins: 0,
@@ -132,10 +147,6 @@ exports.updateCalories = catchAsync(async (req, res, next) => {
     });
 
     console.log(nutrientSums);
-    const user = await User.findOne({ email: email });
-    if (!user) {
-      return res.status(404).json({ msg: "User not found" });
-    }
     const lastCaloriesRecord = user.calories[user.calories.length - 1];
     if (lastCaloriesRecord && lastCaloriesRecord.date === currDate) {
       lastCaloriesRecord.caloriesIntake = nutrientSums.calories;

@@ -15,9 +15,16 @@ const blogsSchema = new Schema({
     required: true,
   },
   LikesCount: {
-    type: Number,
-    required: true,
-    default: 0,
+    type: [
+      {
+        userId: {
+          type: mongoose.Types.ObjectId,
+        },
+        like: {
+          type: Number,
+        },
+      },
+    ],
   },
   Comments: {
     type: [
@@ -55,7 +62,17 @@ const blogsSchema = new Schema({
   },
   Approved: {
     type: Number,
-    default: 0,
+  },
+  Image: {
+    filename: {
+      type: String,
+    },
+    contentType: {
+      type: String,
+    },
+    url: {
+      type: String,
+    },
   },
 });
 

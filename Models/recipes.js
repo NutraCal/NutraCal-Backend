@@ -28,19 +28,15 @@ const recipesSchema = new Schema({
   },
   Calories: {
     type: Number,
-    required: true,
   },
   Proteins: {
     type: Number,
-    required: true,
   },
   Fats: {
     type: Number,
-    required: true,
   },
   Carbs: {
     type: Number,
-    required: true,
   },
   Allergies: {
     type: [String],
@@ -61,18 +57,35 @@ const recipesSchema = new Schema({
     required: true,
     default: 0,
   },
-  Likes: {
-    type: Number,
-    required: true,
-    default: 0,
+  LikesCount: {
+    type: [
+      {
+        userId: {
+          type: mongoose.Types.ObjectId,
+        },
+        like: {
+          type: Number,
+        },
+      },
+    ],
   },
   ServingSize: {
     type: String,
-    required: true,
   },
   Approved: {
     type: Number,
     default: 0,
+  },
+  Image: {
+    filename: {
+      type: String,
+    },
+    contentType: {
+      type: String,
+    },
+    url: {
+      type: String,
+    },
   },
 });
 

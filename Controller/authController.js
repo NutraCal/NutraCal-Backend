@@ -37,9 +37,37 @@ const createSendToken = (user, statusCode, req, res) => {
   });
 };
 
+exports.verifyToken = catchAsync(async (req, res, next) => {
+  if (req?.body?.token) {
+    try {
+      const decoded = await jwt.verify(
+        req?.body?.token,
+        process.env.JWT_SECRET
+      );
+
+      const currentUser = await User.findById(decoded.id);
+
+      if (!currentUser) {
+        return next(new AppError("User not found"));
+      }
+
+      res.status(200).json({
+        status: "success",
+        data: {
+          user: currentUser,
+        },
+      });
+    } catch (err) {
+      res.status(401).json({ error: err });
+    }
+  } else {
+    console.log("Error");
+  }
+});
+
 exports.deleteUser = catchAsync(async (req, res, next) => {
   User.deleteOne({ email: req.params.email }, function (err, result) {
-    if (err) return next(err);
+    if (err) return res.status(500).json({ msg: "Unable to delete record" });
     res.json(result);
   });
 });
@@ -61,15 +89,40 @@ exports.signup = catchAsync(async (req, res, next) => {
   } = req.body;
 
   //Check if email and password not empty
-  // if (!email || !password) {
-  //   return next(new AppError("Please provide email and password!", 400));
-  // }
+  if (!email || !password) {
+    return res.status(400).send("Please Provide Email and Password");
+  }
   const salt = await bcrypt.genSalt(10);
   const hashPassword = await bcrypt.hash(req.body.password, salt);
   const emailExists = await User.findOne({ email: email });
   if (emailExists) {
     return res.status(400).send("Email already exists");
   } else {
+    console.log("here");
+    let heightMeters, weightKg;
+    if (heightUnit == "cm") {
+      heightMeters = height / 100;
+      console.log("calculating height in cm");
+    } else {
+      heightMeters = height * 0.3048;
+      console.log("calculating height in ft");
+    }
+    if (weightUnit == "kg") {
+      weightKg = weight;
+    } else {
+      weightKg = weight * 0.45359237;
+      console.log("calculating height in kg");
+    }
+
+    console.log(weightKg);
+    console.log("height");
+    console.log(heightMeters);
+
+    console.log("hehe");
+    const bmiValue = weightKg / (heightMeters * heightMeters);
+    const bmi = bmiValue.toFixed(2);
+    console.log(bmi);
+
     const user = new User({
       email: email,
       password: hashPassword,
@@ -83,6 +136,7 @@ exports.signup = catchAsync(async (req, res, next) => {
       allergies: allergies,
       diet: diet,
       ingredients: ingredients,
+      bmi: bmi,
     });
     try {
       const savedUser = await user.save();
@@ -95,9 +149,9 @@ exports.signup = catchAsync(async (req, res, next) => {
 
 exports.login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
-  // if (!email || !password) {
-  //   return next(new AppError("Please provide email and password!", 400));
-  // }
+  if (!email || !password) {
+    return next(new AppError("Please provide email and password!", 400));
+  }
   const user = await User.findOne({ email: email });
   if (user == null) {
     return res.status(400).send("User doesn't exist");
@@ -191,12 +245,91 @@ exports.updateWaterIntake = catchAsync(async (req, res, next) => {
 exports.viewUser = catchAsync(async (req, res, next) => {
   User.find({ email: req.params.email }).exec(async function (error, results) {
     if (error) {
-      return next(error);
+      return res.status(500).json({ msg: "Unable to find user" });
     }
     // Respond with valid data
     res.json(results);
   });
 });
+
+exports.getUserId = catchAsync(async (req, res, next) => {
+  const user = User.findOne({ email: req.params.email }).exec(async function (
+    error,
+    results
+  ) {
+    if (error) {
+      return next(error);
+    }
+    // Respond with valid data
+    console.log(results._id);
+    res.json(results._id);
+  });
+});
+
+exports.updateUser = catchAsync(async (req, res, next) => {
+  console.log(req.body);
+  const {
+    email,
+    password,
+    gender,
+    weight,
+    weightUnit,
+    height,
+    heightUnit,
+    age,
+    fitnessGoal,
+  } = req.body;
+  const salt = await bcrypt.genSalt(10);
+  const hashPassword = await bcrypt.hash(req.body.password, salt);
+  User.findOneAndUpdate(
+    { email: email },
+    {
+      password: hashPassword,
+      gender: gender,
+      weight: weight,
+      weightUnit: weightUnit,
+      height: height,
+      heightUnit: heightUnit,
+      age: age,
+      fitnessGoal: fitnessGoal,
+    },
+    function (err, result) {
+      if (err) {
+        res.status(400).send("Can't update the details");
+        return next(err);
+      }
+      res.status(200).json(result);
+    }
+  );
+});
+
+exports.getWaterIntake = catchAsync(async (req, res, next) => {
+  try {
+    console.log("get water");
+    const now = new Date();
+    const currDate =
+      now.getFullYear() +
+      "-" +
+      (now.getMonth() + 1).toString().padStart(2, "0") +
+      "-" +
+      now.getDate();
+    const { email } = req.params.email;
+    const user = await User.find({ email: email });
+    if (user == null) {
+      return res.status(400).send("User doesn't exist");
+    } else {
+      console.log("here");
+      const lastRecord = user.waterIntake[user.waterIntake.length - 1];
+      if (lastRecord && lastRecord.date === currDate) {
+        res.json(lastRecord.water);
+      } else {
+        res.json(0);
+      }
+    }
+  } catch (err) {
+    return res.status(500).json({ msg: "Unable to retreive record" });
+    console.log(err.message);
+  }
+});
 exports.getUser = factory.getOne(User);
 exports.getAllUsers = factory.getAll(User);
-exports.updateUser = factory.updateOne(User);
