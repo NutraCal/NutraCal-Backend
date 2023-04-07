@@ -17,8 +17,8 @@ const blogsSchema = new Schema({
   LikesCount: {
     type: [
       {
-        userId: {
-          type: mongoose.Types.ObjectId,
+        email: {
+          type: String,
         },
         like: {
           type: Number,
@@ -29,8 +29,8 @@ const blogsSchema = new Schema({
   Comments: {
     type: [
       {
-        userId: {
-          type: mongoose.Types.ObjectId,
+        email: {
+          type: String,
         },
         comment: {
           type: String,
@@ -41,8 +41,8 @@ const blogsSchema = new Schema({
         },
         replies: [
           {
-            userId: {
-              type: mongoose.Types.ObjectId,
+            email: {
+              type: String,
             },
             comment: {
               type: String,
@@ -73,6 +73,9 @@ const blogsSchema = new Schema({
     url: {
       type: String,
     },
+  },
+  Remarks: {
+    type: String,
   },
 });
 
