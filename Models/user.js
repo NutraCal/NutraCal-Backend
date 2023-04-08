@@ -126,6 +126,16 @@ var userSchema = new Schema({
       },
     ],
   },
+  following: {
+    type: [
+      {
+        user: {
+          type: mongoose.Types.ObjectId,
+          ref: "Nutritionist",
+        },
+      },
+    ],
+  },
 });
 
 module.exports = mongoose.model("User", userSchema);

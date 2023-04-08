@@ -41,6 +41,19 @@ exports.addShopList = catchAsync(async (req, res, next) => {
   }
 });
 
+exports.deleteShopList = catchAsync(async (req, res, next) => {
+  try {
+    ShoppingList.deleteOne({ user: req.body.userId }, function (err, result) {
+      if (err) {
+        res.status(400).send("Can't clear the shopping list, try again");
+      }
+      res.status(200).json(result);
+    });
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
+
 exports.updateShopList = catchAsync(async (req, res, next) => {
   try {
     const shoppingList = await ShoppingList.findOne({ user: req.body.userId });
@@ -68,17 +81,5 @@ exports.updateShopList = catchAsync(async (req, res, next) => {
   } catch (err) {
     console.error(err);
     res.status(500).send({ message: "Server error" });
-  }
-});
-exports.deleteShopList = catchAsync(async (req, res, next) => {
-  try {
-    ShoppingList.deleteOne({ user: req.body.userId }, function (err, result) {
-      if (err) {
-        res.status(400).send("Can't clear the shopping list, try again");
-      }
-      res.status(200).json(result);
-    });
-  } catch (err) {
-    res.status(500).json(err);
   }
 });

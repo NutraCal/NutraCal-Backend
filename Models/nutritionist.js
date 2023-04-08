@@ -11,7 +11,6 @@ var nutritionistSchema = new Schema({
   },
   name: {
     type: String,
-    required: true,
   },
   qualification: {
     type: String,
@@ -21,10 +20,28 @@ var nutritionistSchema = new Schema({
     type: String,
     required: true,
   },
-  rating: {
-    type: Number,
-    required: true,
-    default: 0,
+  rating: [
+    {
+      user: {
+        type: mongoose.Types.ObjectId,
+        ref: "User",
+      },
+      rate: {
+        type: Number,
+      },
+    },
+  ],
+  ratingAverage: {
+    type: String,
+  },
+  followers: {
+    type: [
+      {
+        user: {
+          type: String,
+        },
+      },
+    ],
   },
   appointments: {
     type: [

@@ -19,6 +19,7 @@ var mealRouter = require("./routes/meals");
 var blogRouter = require("./routes/blogs");
 var discussionThread = require("./routes/discussionThread");
 var adminRouter = require("./routes/admin");
+var nutritionistRouter = require("./routes/nutritionist");
 
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
@@ -37,6 +38,7 @@ app.use("/users", usersRouter);
 app.use("/blogs", blogRouter);
 app.use("/discussionThreads", discussionThread);
 app.use("/admin", adminRouter);
+app.use("/nutritionist", nutritionistRouter);
 
 app.all("*", (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
