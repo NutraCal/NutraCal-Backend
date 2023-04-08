@@ -43,20 +43,31 @@ exports.addShopList = catchAsync(async (req, res, next) => {
 
 exports.updateShopList = catchAsync(async (req, res, next) => {
   try {
-    const { userId, list } = req.body;
-    ShoppingList.findOneAndUpdate(
-      { user: userId },
-      { list: list },
-      function (err, result) {
-        if (err) {
-          res.status(400).send("Can't update the shopping list, try again");
-          return next(err);
+    const shoppingList = await ShoppingList.findOne({ user: req.body.userId });
+    const items = req.body.list;
+    if (!shoppingList) {
+      return res.status(404).send({ message: "Shopping list not found" });
+    }
+    if (shoppingList.list.length === 0) {
+      shoppingList.list.push(...items);
+    } else {
+      for (const item of items) {
+        if (shoppingList.list.indexOf(item) !== -1) {
+          shoppingList.list = shoppingList.list.filter((i) => i !== item);
+        } else {
+          shoppingList.list.push(item);
         }
-        res.status(200).json(result);
       }
-    );
+    }
+
+    await shoppingList.save();
+
+    return res
+      .status(200)
+      .json({ message: "Shopping list updated", shoppingList });
   } catch (err) {
-    res.status(500).json(err);
+    console.error(err);
+    res.status(500).send({ message: "Server error" });
   }
 });
 exports.deleteShopList = catchAsync(async (req, res, next) => {
