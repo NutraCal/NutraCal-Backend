@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const Nutritionist = require("../Models/nutritionist");
+const User = require("../Models/user");
 const bcrypt = require("bcrypt");
 let config = require("../config");
 const catchAsync = require("../utils/catchAsync");
@@ -183,7 +184,7 @@ exports.followNutritionist = catchAsync(async (req, res, next) => {
       return res.status(404).json({ message: "Nutritionist not found" });
     }
 
-    // Check if the user has already liked the blog post
+    // Check if the user has already followed thisNutritionist
     const existingFollow = nutritionist.followers.find(
       (follow) => follow.user === userEmail
     );
@@ -210,5 +211,103 @@ exports.followNutritionist = catchAsync(async (req, res, next) => {
     });
   } catch (err) {
     return res.status(400).json({ message: err.message });
+  }
+});
+exports.bookAppointment = catchAsync(async (req, res, next) => {
+  try {
+    // Get the nutritionist's ID from their email
+    const nutritionist = await Nutritionist.findOne({
+      email: req.body.nutritionistEmail,
+    });
+    const usr = await User.findOne({
+      email: req.body.userEmail,
+    });
+
+    if (!nutritionist || !usr) {
+      return res.status(404).send({ error: "Please provide valid email" });
+    }
+    const nutritionistId = nutritionist._id;
+    const userId = usr._id;
+    // Check if the appointment slot is available
+    const appointmentDate = req.body.date;
+    const appointmentTime = req.body.time;
+    const isAvailable = await Nutritionist.findOne({
+      _id: nutritionistId,
+      "appointments.date": appointmentDate,
+      "appointments.time": appointmentTime,
+    });
+    if (isAvailable) {
+      return res
+        .status(400)
+        .send({ error: "This appointment slot is not available" });
+    }
+
+    // Create the appointment for the user and nutritionist
+    const user = await User.findOneAndUpdate(
+      { _id: userId },
+      {
+        $push: {
+          appointments: {
+            nutritionist: nutritionistId,
+            date: appointmentDate,
+            time: appointmentTime,
+          },
+        },
+      },
+      { new: true }
+    );
+
+    // Add the appointment for the nutritionist
+    const nutritionistUpdate = await Nutritionist.findOneAndUpdate(
+      { _id: nutritionistId },
+      {
+        $push: {
+          appointments: {
+            user: userId,
+            date: appointmentDate,
+            time: appointmentTime,
+          },
+        },
+      },
+      { new: true }
+    );
+
+    // Return the updated user document
+    res.status(200).json({
+      message: "Appointment book successfully",
+      Appointments: user.appointments,
+      Nutritionist: nutritionistUpdate,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({ error: "Server error" });
+  }
+});
+
+exports.cancelAppointment = catchAsync(async (req, res, next) => {
+  try {
+    const { date, time } = req.body;
+
+    // // Find the appointment in the user's appointments array
+    const user = await User.findOneAndUpdate(
+      {
+        "appointments.date": date,
+        "appointments.time": time,
+      },
+      { $pull: { appointments: { date: date, time: time } } }
+    );
+    // Find the appointment in the user's appointments array
+    const nutritionist = await Nutritionist.findOneAndUpdate(
+      {
+        "appointments.date": date,
+        "appointments.time": time,
+      },
+      { $pull: { appointments: { date: date, time: time } } }
+    );
+
+    return res.status(200).json({ message: "Appointment Cancelled" });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Server error" });
   }
 });

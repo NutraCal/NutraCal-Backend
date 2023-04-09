@@ -8,4 +8,6 @@ router.delete("/deleteNutritionist/:email", authController.deleteNutritionist);
 router.post("/verifyToken", authController.verifyToken);
 router.post("/rateNutritionist", authController.rateNutritionist);
 router.post("/followNutritionist", authController.followNutritionist);
+router.post("/bookAppointment", authController.bookAppointment);
+router.delete("/cancelAppointment", authController.cancelAppointment);
 module.exports = router;
