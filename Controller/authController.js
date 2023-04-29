@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const User = require("../Models/user");
+const Nutritionist = require("../Models/nutritionist");
 const bcrypt = require("bcrypt");
 let config = require("../config");
 const catchAsync = require("../utils/catchAsync");
@@ -45,10 +46,12 @@ exports.verifyToken = catchAsync(async (req, res, next) => {
         process.env.JWT_SECRET
       );
 
-      const currentUser = await User.findById(decoded.id);
-
+      let currentUser = await User.findById(decoded.id);
       if (!currentUser) {
-        return next(new AppError("User not found"));
+        currentUser = await Nutritionist.findById(decoded.id);
+      }
+      if (!currentUser) {
+        return res.status(400).send("User doesn't exist");
       }
 
       res.status(200).json({
@@ -73,74 +76,109 @@ exports.deleteUser = catchAsync(async (req, res, next) => {
 });
 
 exports.signup = catchAsync(async (req, res, next) => {
-  const {
-    email,
-    password,
-    fitnessGoal,
-    gender,
-    age,
-    height,
-    heightUnit,
-    weight,
-    weightUnit,
-    allergies,
-    diet,
-    ingredients,
-  } = req.body;
+  if (req.body.role == "user") {
+    console.log("User");
+    const {
+      name,
+      email,
+      password,
+      fitnessGoal,
+      gender,
+      age,
+      height,
+      heightUnit,
+      weight,
+      weightUnit,
+      allergies,
+      diet,
+      ingredients,
+      role,
+    } = req.body;
 
-  //Check if email and password not empty
-  if (!email || !password) {
-    return res.status(400).send("Please Provide Email and Password");
+    //Check if email and password not empty
+    if (!email || !password) {
+      return res.status(400).send("Please Provide Email and Password");
+    }
+    const salt = await bcrypt.genSalt(10);
+    const hashPassword = await bcrypt.hash(req.body.password, salt);
+    const emailExists = await User.findOne({ email: email });
+    if (emailExists) {
+      return res.status(400).send("Email already exists");
+    } else {
+      console.log("here");
+      let heightMeters, weightKg;
+      if (heightUnit == "cm") {
+        heightMeters = height / 100;
+        console.log("calculating height in cm");
+      } else {
+        heightMeters = height * 0.3048;
+        console.log("calculating height in ft");
+      }
+      if (weightUnit == "kg") {
+        weightKg = weight;
+      } else {
+        weightKg = weight * 0.45359237;
+        console.log("calculating height in kg");
+      }
+
+      console.log(weightKg);
+      console.log("height");
+      console.log(heightMeters);
+
+      console.log("hehe");
+      const bmiValue = weightKg / (heightMeters * heightMeters);
+      const bmi = bmiValue.toFixed(2);
+      console.log(bmi);
+
+      const user = new User({
+        name: name,
+        email: email,
+        password: hashPassword,
+        fitnessGoal: fitnessGoal,
+        gender: gender,
+        age: age,
+        height: height,
+        heightUnit: heightUnit,
+        weight: weight,
+        weightUnit: weightUnit,
+        allergies: allergies,
+        diet: diet,
+        ingredients: ingredients,
+        bmi: bmi,
+      });
+      try {
+        const savedUser = await user.save();
+        return res.status(200).send("User added successfully");
+      } catch (err) {
+        console.log(err);
+      }
+    }
   }
-  const salt = await bcrypt.genSalt(10);
-  const hashPassword = await bcrypt.hash(req.body.password, salt);
-  const emailExists = await User.findOne({ email: email });
-  if (emailExists) {
-    return res.status(400).send("Email already exists");
-  } else {
-    console.log("here");
-    let heightMeters, weightKg;
-    if (heightUnit == "cm") {
-      heightMeters = height / 100;
-      console.log("calculating height in cm");
-    } else {
-      heightMeters = height * 0.3048;
-      console.log("calculating height in ft");
+  if (req.body.role == "nutritionist") {
+    const { name, email, password, qualification, availability, role } =
+      req.body;
+
+    //Check if email and password not empty
+    if (!name || !email || !password) {
+      return res.status(400).send("Kindly fill all fields");
     }
-    if (weightUnit == "kg") {
-      weightKg = weight;
-    } else {
-      weightKg = weight * 0.45359237;
-      console.log("calculating height in kg");
+    const salt = await bcrypt.genSalt(10);
+    const hashPassword = await bcrypt.hash(req.body.password, salt);
+    const emailExists = await Nutritionist.findOne({ email: email });
+    if (emailExists) {
+      return res.status(400).send("Email already exists");
     }
-
-    console.log(weightKg);
-    console.log("height");
-    console.log(heightMeters);
-
-    console.log("hehe");
-    const bmiValue = weightKg / (heightMeters * heightMeters);
-    const bmi = bmiValue.toFixed(2);
-    console.log(bmi);
-
-    const user = new User({
+    const nutritionist = new Nutritionist({
+      name: name,
       email: email,
       password: hashPassword,
-      fitnessGoal: fitnessGoal,
-      gender: gender,
-      age: age,
-      height: height,
-      heightUnit: heightUnit,
-      weight: weight,
-      weightUnit: weightUnit,
-      allergies: allergies,
-      diet: diet,
-      ingredients: ingredients,
-      bmi: bmi,
+      name: name,
+      qualification: qualification,
+      availability: availability,
     });
     try {
-      const savedUser = await user.save();
-      return res.status(200).send("User added successfully");
+      const savedUser = await nutritionist.save();
+      return res.status(200).send("Nutritionist registered successfully");
     } catch (err) {
       console.log(err);
     }
@@ -152,29 +190,20 @@ exports.login = catchAsync(async (req, res, next) => {
   if (!email || !password) {
     return next(new AppError("Please provide email and password!", 400));
   }
-  const user = await User.findOne({ email: email });
-  if (user == null) {
+  // Check if email exists in User collection
+  let user = await User.findOne({ email: email });
+  // If not found, check if email exists in Nutritionist collection
+  if (!user) {
+    user = await Nutritionist.findOne({ email: email });
+  }
+  if (!user) {
     return res.status(400).send("User doesn't exist");
+  }
+  const validPass = await bcrypt.compare(password, user.password);
+  if (validPass) {
+    createSendToken(user, 200, req, res);
   } else {
-    const validPass = await bcrypt.compare(password, user.password);
-    if (validPass) {
-      // res.statusCode = 200;
-      // res.statusCode = 200;
-      // res.header("auth-token", token).send(token);
-      let token = jwt.sign({ _id: user._id }, config.secret);
-
-      // res.status(200).json({
-      //   status: "success",
-      //   data: {
-      //     token,
-      //   },
-      // });
-      console.log("snednig into create");
-      createSendToken(user, 200, req, res);
-    } else {
-      console.log("Here");
-      return res.status(500).send("Couldn't Login, Incorrect Password");
-    }
+    return res.status(500).send("Couldn't Login, Incorrect Password");
   }
 });
 

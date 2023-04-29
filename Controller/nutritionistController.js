@@ -71,7 +71,7 @@ exports.deleteNutritionist = catchAsync(async (req, res, next) => {
 });
 
 exports.signupNutritionist = catchAsync(async (req, res, next) => {
-  const { email, password, name, qualification, availability } = req.body;
+  const { name, email, password, qualification, availability, role } = req.body;
 
   //Check if email and password not empty
   if (!name || !email || !password) {
@@ -84,6 +84,7 @@ exports.signupNutritionist = catchAsync(async (req, res, next) => {
     return res.status(400).send("Email already exists");
   }
   const nutritionist = new Nutritionist({
+    name: name,
     email: email,
     password: hashPassword,
     name: name,
