@@ -71,13 +71,46 @@ exports.updateShopList = catchAsync(async (req, res, next) => {
     } else {
       for (const item of items) {
         if (shoppingList.list.indexOf(item) !== -1) {
-          shoppingList.list = shoppingList.list.filter((i) => i !== item);
+          // shoppingList.list = shoppingList.list.filter((i) => i !== item);
+          return res.status(200).send({ message: "Item already exists" });
         } else {
           shoppingList.list.push(item);
         }
       }
     }
 
+    await shoppingList.save();
+
+    return res
+      .status(200)
+      .json({ message: "Shopping list updated", shoppingList });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({ message: "Server error" });
+  }
+});
+
+exports.removeFromShopList = catchAsync(async (req, res, next) => {
+  try {
+    console.log(req.body.userId);
+    let shoppingList = await ShoppingList.findOne({ user: req.body.userId });
+    const items = req.body.list;
+    if (!shoppingList) {
+      shoppingList = new ShoppingList({ user: req.body.userId, list: [] });
+      await shoppingList.save();
+      console.log("list created successfully");
+      // return res.status(404).send({ message: "Shopping list not found" });
+    }
+    if (shoppingList.list.length === 0) {
+      console.log("list empty");
+      shoppingList.list.push(...items);
+    } else {
+      for (const item of items) {
+        if (shoppingList.list.indexOf(item) !== -1) {
+          shoppingList.list = shoppingList.list.filter((i) => i !== item);
+        }
+      }
+    }
     await shoppingList.save();
 
     return res
