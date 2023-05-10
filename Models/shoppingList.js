@@ -3,7 +3,7 @@ var Schema = mongoose.Schema;
 var shoppingListSchema = new Schema({
   user: {
     type: mongoose.Types.ObjectId,
-    ref: "User",
+    // ref: "User",
     required: true,
   },
   list: [String],

@@ -56,12 +56,17 @@ exports.deleteShopList = catchAsync(async (req, res, next) => {
 
 exports.updateShopList = catchAsync(async (req, res, next) => {
   try {
-    const shoppingList = await ShoppingList.findOne({ user: req.body.userId });
+    console.log(req.body.userId);
+    let shoppingList = await ShoppingList.findOne({ user: req.body.userId });
     const items = req.body.list;
     if (!shoppingList) {
-      return res.status(404).send({ message: "Shopping list not found" });
+      shoppingList = new ShoppingList({ user: req.body.userId, list: [] });
+      await shoppingList.save();
+      console.log("list created successfully");
+      // return res.status(404).send({ message: "Shopping list not found" });
     }
     if (shoppingList.list.length === 0) {
+      console.log("list empty");
       shoppingList.list.push(...items);
     } else {
       for (const item of items) {

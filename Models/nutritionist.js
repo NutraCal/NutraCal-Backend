@@ -20,7 +20,19 @@ var nutritionistSchema = new Schema({
     type: String,
     required: true,
   },
-  availability: {
+  startDay: {
+    type: String,
+    required: true,
+  },
+  endDay: {
+    type: String,
+    required: true,
+  },
+  startTime: {
+    type: String,
+    required: true,
+  },
+  endTime: {
     type: String,
     required: true,
   },
@@ -62,6 +74,10 @@ var nutritionistSchema = new Schema({
         },
       },
     ],
+  },
+  role: {
+    type: String,
+    required: true,
   },
 });
 

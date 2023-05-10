@@ -76,7 +76,7 @@ exports.deleteUser = catchAsync(async (req, res, next) => {
 });
 
 exports.signup = catchAsync(async (req, res, next) => {
-  if (req.body.role == "user") {
+  if (req.body.role == "User") {
     console.log("User");
     const {
       name,
@@ -145,6 +145,7 @@ exports.signup = catchAsync(async (req, res, next) => {
         diet: diet,
         ingredients: ingredients,
         bmi: bmi,
+        role: "User",
       });
       try {
         const savedUser = await user.save();
@@ -154,9 +155,19 @@ exports.signup = catchAsync(async (req, res, next) => {
       }
     }
   }
-  if (req.body.role == "nutritionist") {
-    const { name, email, password, qualification, availability, role } =
-      req.body;
+  if (req.body.role == "Nutritionist") {
+    console.log("Please");
+    const {
+      name,
+      email,
+      password,
+      qualification,
+      startDay,
+      endDay,
+      startTime,
+      endTime,
+      role,
+    } = req.body;
 
     //Check if email and password not empty
     if (!name || !email || !password) {
@@ -174,7 +185,11 @@ exports.signup = catchAsync(async (req, res, next) => {
       password: hashPassword,
       name: name,
       qualification: qualification,
-      availability: availability,
+      startDay: startDay,
+      endDay: endDay,
+      startTime: startTime,
+      endTime: endTime,
+      role: "Nutritionist",
     });
     try {
       const savedUser = await nutritionist.save();
@@ -186,24 +201,29 @@ exports.signup = catchAsync(async (req, res, next) => {
 });
 
 exports.login = catchAsync(async (req, res, next) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
-    return next(new AppError("Please provide email and password!", 400));
-  }
-  // Check if email exists in User collection
-  let user = await User.findOne({ email: email });
-  // If not found, check if email exists in Nutritionist collection
-  if (!user) {
-    user = await Nutritionist.findOne({ email: email });
-  }
-  if (!user) {
-    return res.status(400).send("User doesn't exist");
-  }
-  const validPass = await bcrypt.compare(password, user.password);
-  if (validPass) {
-    createSendToken(user, 200, req, res);
-  } else {
-    return res.status(500).send("Couldn't Login, Incorrect Password");
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return next(new AppError("Please provide email and password!", 400));
+    }
+    // Check if email exists in User collection
+    let user = await User.findOne({ email: email });
+    // If not found, check if email exists in Nutritionist collection
+    if (!user) {
+      user = await Nutritionist.findOne({ email: email });
+    }
+    if (!user) {
+      return res.status(400).send("User doesn't exist");
+    }
+    const validPass = await bcrypt.compare(password, user.password);
+    if (validPass) {
+      createSendToken(user, 200, req, res);
+    } else {
+      console.log("Here");
+      return res.status(500).send("Couldn't Login, Incorrect Password");
+    }
+  } catch (e) {
+    res.status(500).send(e);
   }
 });
 
