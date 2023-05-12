@@ -74,6 +74,14 @@ exports.addRecipe = catchAsync(async (req, res, next) => {
     Allergies: allergies,
     ServingSize: servingSize,
   });
+  if (req.file) {
+    console.log("Storing Image");
+    recipe.Image = {
+      filename: req.file.filename,
+      contentType: req.file.mimetype,
+      url: "http://localhost:8000/" + req.file.filename,
+    };
+  }
   try {
     const savedUser = await recipe.save();
     return res.status(200).send("Recipe added successfully");

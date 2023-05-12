@@ -1,9 +1,28 @@
 var express = require("express");
 var router = express.Router();
-const Recipes = require("../Models/recipes");
-const Users = require("../Models/user");
 const recipeController = require("../Controller/recipeController");
-
+const multer = require("multer");
+const multerStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "public");
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + "-" + file.originalname);
+  },
+});
+const multerFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith("image")) {
+    cb(null, true);
+  } else {
+    cb(new AppError("Not an image! Please upload only images.", 400), false);
+  }
+};
+const upload = multer({
+  storage: multerStorage,
+  fileFilter: multerFilter,
+});
+//multer image storing for blogs
+router.post("/addRecipe", upload.single("photo"), recipeController.addRecipe);
 router.get("/viewRecipes", recipeController.viewRecipes);
 router.get("/viewRecipeByName", recipeController.viewRecipeByName);
 router.post("/detectText", recipeController.detectText);
@@ -12,7 +31,6 @@ router.put("/edit/likes", recipeController.updateLikes);
 router.put("/approveRecipe", recipeController.approveRecipe);
 router.delete("/deleteRecipe", recipeController.deleteRecipe);
 router.post("/filterRecipe", recipeController.filterRecipe);
-router.post("/addRecipe", recipeController.addRecipe);
 router.post("/userRecipes", recipeController.userRecipes);
 router.post("/searchRecipes", recipeController.searchRecipes);
 

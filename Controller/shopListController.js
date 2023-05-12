@@ -19,28 +19,6 @@ exports.getShopList = catchAsync(async (req, res, next) => {
   }
 });
 
-exports.addShopList = catchAsync(async (req, res, next) => {
-  try {
-    const { userId, list } = req.body;
-    if (!userId || !list) {
-      return res.status(400).send("Kindly provide userId and list");
-    } else {
-      const newShoppingList = new ShoppingList({
-        user: userId,
-        list: list,
-      });
-      try {
-        const savedShoppingList = await newShoppingList.save();
-        return res.status(200).send("Shopping list added successfully");
-      } catch (err) {
-        console.log(err);
-      }
-    }
-  } catch (err) {
-    res.status(500).json(err);
-  }
-});
-
 exports.deleteShopList = catchAsync(async (req, res, next) => {
   try {
     ShoppingList.deleteOne({ user: req.body.userId }, function (err, result) {

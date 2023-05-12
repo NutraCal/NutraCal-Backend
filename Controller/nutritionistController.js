@@ -1,121 +1,16 @@
 const jwt = require("jsonwebtoken");
 const Nutritionist = require("../Models/nutritionist");
 const User = require("../Models/user");
-const bcrypt = require("bcrypt");
 let config = require("../config");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 const factory = require("./handlerFactory");
-
-const signToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN,
-  });
-};
-
-const createSendToken = (user, statusCode, req, res) => {
-  const token = signToken(user._id);
-
-  res.cookie("jwt", token, {
-    expires: new Date(
-      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
-    ),
-    httpOnly: true,
-    secure: req.secure || req.headers["x-forwarded-proto"] === "https",
-  });
-
-  // Remove password from output
-  user.password = undefined;
-  res.status(statusCode).json({
-    status: "success",
-    token,
-    data: {
-      user,
-    },
-  });
-};
-
-exports.verifyToken = catchAsync(async (req, res, next) => {
-  if (req?.body?.token) {
-    try {
-      const decoded = await jwt.verify(
-        req?.body?.token,
-        process.env.JWT_SECRET
-      );
-
-      const currentUser = await Nutritionist.findById(decoded.id);
-
-      if (!currentUser) {
-        return next(new AppError("User not found"));
-      }
-
-      res.status(200).json({
-        status: "success",
-        data: {
-          user: currentUser,
-        },
-      });
-    } catch (err) {
-      res.status(401).json({ error: err });
-    }
-  } else {
-    console.log("Error");
-  }
-});
 
 exports.deleteNutritionist = catchAsync(async (req, res, next) => {
   Nutritionist.deleteOne({ email: req.params.email }, function (err, result) {
     if (err) return res.status(500).json({ msg: "Unable to delete record" });
     res.status(200).json(result);
   });
-});
-
-exports.signupNutritionist = catchAsync(async (req, res, next) => {
-  const { name, email, password, qualification, availability, role } = req.body;
-
-  //Check if email and password not empty
-  if (!name || !email || !password) {
-    return res.status(400).send("Kindly fill all fields");
-  }
-  const salt = await bcrypt.genSalt(10);
-  const hashPassword = await bcrypt.hash(req.body.password, salt);
-  const emailExists = await Nutritionist.findOne({ email: email });
-  if (emailExists) {
-    return res.status(400).send("Email already exists");
-  }
-  const nutritionist = new Nutritionist({
-    name: name,
-    email: email,
-    password: hashPassword,
-    name: name,
-    qualification: qualification,
-    availability: availability,
-  });
-  try {
-    const savedUser = await nutritionist.save();
-    return res.status(200).send("Nutritionist registered successfully");
-  } catch (err) {
-    console.log(err);
-  }
-});
-
-exports.loginNutritionist = catchAsync(async (req, res, next) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
-    return res.status(400).send("Kindly fill all required fields");
-  }
-  const user = await Nutritionist.findOne({ email: email });
-  if (user == null) {
-    return res.status(400).send("User doesn't exist");
-  } else {
-    const validPass = await bcrypt.compare(password, user.password);
-    if (validPass) {
-      let token = jwt.sign({ _id: user._id }, config.secret);
-      createSendToken(user, 200, req, res);
-    } else {
-      return res.status(500).send("Couldn't Login, Incorrect Password");
-    }
-  }
 });
 
 exports.rateNutritionist = catchAsync(async (req, res, next) => {
@@ -216,41 +111,74 @@ exports.followNutritionist = catchAsync(async (req, res, next) => {
 });
 exports.bookAppointment = catchAsync(async (req, res, next) => {
   try {
-    // Get the nutritionist's ID from their email
     const nutritionist = await Nutritionist.findOne({
       email: req.body.nutritionistEmail,
     });
-    const usr = await User.findOne({
+    const user = await User.findOne({
       email: req.body.userEmail,
     });
 
-    if (!nutritionist || !usr) {
+    if (!nutritionist || !user) {
       return res.status(404).send({ error: "Please provide valid email" });
     }
+
     const nutritionistId = nutritionist._id;
-    const userId = usr._id;
-    // Check if the appointment slot is available
-    const appointmentDate = req.body.date;
+    const userId = user._id;
+    const appointmentDay = req.body.day;
     const appointmentTime = req.body.time;
+
+    // Convert startDay, endDay and appointmentDay to corresponding numbers
+    const dayMap = {
+      Monday: 1,
+      Tuesday: 2,
+      Wednesday: 3,
+      Thursday: 4,
+      Friday: 5,
+      Saturday: 6,
+      Sunday: 7,
+    };
+    const startDayNum = dayMap[nutritionist.startDay];
+    const endDayNum = dayMap[nutritionist.endDay];
+    const appointmentDayNum = dayMap[appointmentDay];
+    console.log(startDayNum, endDayNum, appointmentDayNum);
+    // Check if the nutritionist is available on the given day and time
     const isAvailable = await Nutritionist.findOne({
       _id: nutritionistId,
-      "appointments.date": appointmentDate,
+      $and: [
+        { startTime: { $lte: appointmentTime } },
+        { endTime: { $gte: appointmentTime } },
+      ],
+    });
+
+    if (!isAvailable) {
+      if (startDayNum >= appointmentDayNum && endDayNum <= appointmentDayNum) {
+        return res
+          .status(400)
+          .send({ error: "The nutritionist is not available at this time" });
+      }
+    }
+
+    // Check if the nutritionist already has an appointment at the given day and time
+    const hasAppointment = await Nutritionist.findOne({
+      _id: nutritionistId,
+      "appointments.day": appointmentDay,
       "appointments.time": appointmentTime,
     });
-    if (isAvailable) {
+
+    if (hasAppointment) {
       return res
         .status(400)
         .send({ error: "This appointment slot is not available" });
     }
 
     // Create the appointment for the user and nutritionist
-    const user = await User.findOneAndUpdate(
+    const userUpdate = await User.findOneAndUpdate(
       { _id: userId },
       {
         $push: {
           appointments: {
             nutritionist: nutritionistId,
-            date: appointmentDate,
+            day: appointmentDay,
             time: appointmentTime,
           },
         },
@@ -265,7 +193,7 @@ exports.bookAppointment = catchAsync(async (req, res, next) => {
         $push: {
           appointments: {
             user: userId,
-            date: appointmentDate,
+            day: appointmentDay,
             time: appointmentTime,
           },
         },
@@ -275,8 +203,8 @@ exports.bookAppointment = catchAsync(async (req, res, next) => {
 
     // Return the updated user document
     res.status(200).json({
-      message: "Appointment book successfully",
-      Appointments: user.appointments,
+      message: "Appointment booked successfully",
+      Appointments: userUpdate.appointments,
       Nutritionist: nutritionistUpdate,
     });
   } catch (err) {

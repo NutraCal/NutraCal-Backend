@@ -1,11 +1,11 @@
 var express = require("express");
 var router = express.Router();
-const multer = require("multer");
-const Blogs = require("../Models/blogs");
 const blogController = require("../Controller/blogController");
+const multer = require("multer");
+
 const multerStorage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "uploads/");
+    cb(null, "public");
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + "-" + file.originalname);
@@ -29,7 +29,10 @@ router.post("/viewUnapproved", blogController.userViewUnapproved);
 router.post("/viewBlogByTitle", blogController.viewBlogByTitle);
 router.put("/addComments", blogController.addComments);
 router.put("/approveBlog", blogController.approveBlog);
+
+//multer image storing for blogs
 router.post("/postBlog", upload.single("photo"), blogController.postBlog);
+
 router.put("/rejectBlog", blogController.rejectBlog);
 router.put("/replyOnComment", blogController.addCommentReply);
 router.put("/editBlog", blogController.editBlog);

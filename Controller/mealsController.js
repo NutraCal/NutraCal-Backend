@@ -86,7 +86,7 @@ exports.updateMeal = catchAsync(async (req, res, next) => {
     },
     function (err, result) {
       if (err) {
-        res.status(400).send("Can't update the shopping list, try again");
+        res.status(400).send("Can't update, try again");
         return next(err);
       }
       res.status(200).json(result);
@@ -101,7 +101,7 @@ exports.deleteAllMeals = catchAsync(async (req, res, next) => {
   const userId = user._id;
   Meals.deleteMany({ user: userId }, function (err, result) {
     if (err) {
-      res.status(400).send("Can't clear the shopping list, try again");
+      res.status(400).send("Can't clear, try again");
       return next(err);
     }
     res.status(200).json(result);
@@ -110,7 +110,7 @@ exports.deleteAllMeals = catchAsync(async (req, res, next) => {
 exports.deleteMeal = catchAsync(async (req, res, next) => {
   Meals.deleteOne({ _id: req.body.mealId }, function (err, result) {
     if (err) {
-      res.status(400).send("Can't clear the shopping list, try again");
+      res.status(400).send("Can't clear, try again");
       return next(err);
     }
     res.status(200).json(result);

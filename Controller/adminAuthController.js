@@ -87,6 +87,14 @@ exports.signupAdmin = catchAsync(async (req, res, next) => {
     email: email,
     password: hashPassword,
   });
+  if (req.file) {
+    console.log("Storing Image");
+    admin.Image = {
+      filename: req.file.filename,
+      contentType: req.file.mimetype,
+      url: "http://localhost:8000/" + req.file.filename,
+    };
+  }
   try {
     const savedUser = await admin.save();
     return res.status(200).send("Admin registered successfully");

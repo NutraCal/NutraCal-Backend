@@ -147,6 +147,14 @@ exports.signup = catchAsync(async (req, res, next) => {
         bmi: bmi,
         role: "User",
       });
+      if (req.file) {
+        console.log("Storing Image");
+        user.Image = {
+          filename: req.file.filename,
+          contentType: req.file.mimetype,
+          url: "http://localhost:8000/" + req.file.filename,
+        };
+      }
       try {
         const savedUser = await user.save();
         return res.status(200).send("User added successfully");
@@ -183,7 +191,6 @@ exports.signup = catchAsync(async (req, res, next) => {
       name: name,
       email: email,
       password: hashPassword,
-      name: name,
       qualification: qualification,
       startDay: startDay,
       endDay: endDay,
@@ -191,6 +198,14 @@ exports.signup = catchAsync(async (req, res, next) => {
       endTime: endTime,
       role: "Nutritionist",
     });
+    if (req.file) {
+      console.log("Storing Image");
+      nutritionist.Image = {
+        filename: req.file.filename,
+        contentType: req.file.mimetype,
+        url: "http://localhost:8000/" + req.file.filename,
+      };
+    }
     try {
       const savedUser = await nutritionist.save();
       return res.status(200).send("Nutritionist registered successfully");

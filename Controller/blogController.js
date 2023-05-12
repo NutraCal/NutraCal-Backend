@@ -30,7 +30,7 @@ exports.postBlog = catchAsync(async (req, res, next) => {
     blogPost.Image = {
       filename: req.file.filename,
       contentType: req.file.mimetype,
-      url: `https://example.com/${req.file.filename}`,
+      url: "http://localhost:8000/" + req.file.filename,
     };
   }
 

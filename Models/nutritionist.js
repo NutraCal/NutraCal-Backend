@@ -66,7 +66,7 @@ var nutritionistSchema = new Schema({
           type: mongoose.Types.ObjectId,
           ref: "User",
         },
-        date: {
+        day: {
           type: String,
         },
         time: {
@@ -78,6 +78,17 @@ var nutritionistSchema = new Schema({
   role: {
     type: String,
     required: true,
+  },
+  Image: {
+    filename: {
+      type: String,
+    },
+    contentType: {
+      type: String,
+    },
+    url: {
+      type: String,
+    },
   },
 });
 

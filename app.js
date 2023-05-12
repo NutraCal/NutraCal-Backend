@@ -11,6 +11,12 @@ const globalErrorHandler = require("./Controller/errorController");
 var app = express();
 app.use(express.json());
 
+app.use("/", express.static(path.join(__dirname, "public")));
+
+app.get("/", (req, res) => {
+  res.send("Hello World!");
+});
+
 //var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/user");
 var recipesRouter = require("./routes/recipes");
@@ -20,6 +26,7 @@ var blogRouter = require("./routes/blogs");
 var discussionThread = require("./routes/discussionThread");
 var adminRouter = require("./routes/admin");
 var nutritionistRouter = require("./routes/nutritionist");
+var dietPlanRouter = require("./routes/dietPlan");
 
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
@@ -39,6 +46,7 @@ app.use("/blogs", blogRouter);
 app.use("/discussionThreads", discussionThread);
 app.use("/admin", adminRouter);
 app.use("/nutritionist", nutritionistRouter);
+app.use("/diet", dietPlanRouter);
 
 app.all("*", (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
