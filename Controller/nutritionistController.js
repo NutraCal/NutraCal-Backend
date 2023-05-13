@@ -137,10 +137,12 @@ exports.bookAppointment = catchAsync(async (req, res, next) => {
       Saturday: 6,
       Sunday: 7,
     };
-    const startDayNum = dayMap[nutritionist.startDay];
-    const endDayNum = dayMap[nutritionist.endDay];
     const appointmentDayNum = dayMap[appointmentDay];
-    console.log(startDayNum, endDayNum, appointmentDayNum);
+    const isBetween = isDayOfWeekBetweenAll(
+      nutritionist.startDay,
+      nutritionist.endDay,
+      appointmentDay
+    );
     // Check if the nutritionist is available on the given day and time
     const isAvailable = await Nutritionist.findOne({
       _id: nutritionistId,
@@ -150,18 +152,17 @@ exports.bookAppointment = catchAsync(async (req, res, next) => {
       ],
     });
 
-    if (!isAvailable) {
-      if (startDayNum >= appointmentDayNum && endDayNum <= appointmentDayNum) {
-        return res
-          .status(400)
-          .send({ error: "The nutritionist is not available at this time" });
-      }
+    if (!isAvailable || !isBetween) {
+      return res
+        .status(400)
+        .send({ error: "The nutritionist is not available at this time" });
     }
-
+    let appointmentdate1 = getNextDateForDayOfWeek(appointmentDayNum); // 2 represents Tuesday
+    const appointmentDate = appointmentdate1.toLocaleDateString();
     // Check if the nutritionist already has an appointment at the given day and time
     const hasAppointment = await Nutritionist.findOne({
       _id: nutritionistId,
-      "appointments.day": appointmentDay,
+      "appointments.date": appointmentDate,
       "appointments.time": appointmentTime,
     });
 
@@ -178,6 +179,7 @@ exports.bookAppointment = catchAsync(async (req, res, next) => {
         $push: {
           appointments: {
             nutritionist: nutritionistId,
+            date: appointmentDate,
             day: appointmentDay,
             time: appointmentTime,
           },
@@ -193,6 +195,7 @@ exports.bookAppointment = catchAsync(async (req, res, next) => {
         $push: {
           appointments: {
             user: userId,
+            date: appointmentDate,
             day: appointmentDay,
             time: appointmentTime,
           },
@@ -240,3 +243,83 @@ exports.cancelAppointment = catchAsync(async (req, res, next) => {
     return res.status(500).json({ message: "Server error" });
   }
 });
+
+function isDayOfWeekBetween(startDayOfWeek, endDayOfWeek, dayOfWeekToCheck) {
+  // Convert the input days of the week to their corresponding numbers
+  const daysOfWeek = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
+  const start = daysOfWeek.indexOf(startDayOfWeek);
+  const end = daysOfWeek.indexOf(endDayOfWeek);
+  const check = daysOfWeek.indexOf(dayOfWeekToCheck);
+
+  // Check if the day of the week to check is between the start and end days of the week
+  if (start <= end) {
+    return check >= start && check <= end;
+  } else {
+    return check >= start || check <= end;
+  }
+}
+
+function getAllDaysOfWeekBetween(startDayOfWeek, endDayOfWeek) {
+  const daysOfWeek = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
+  const start = daysOfWeek.indexOf(startDayOfWeek);
+  const end = daysOfWeek.indexOf(endDayOfWeek);
+  const result = [];
+
+  if (start <= end) {
+    for (let i = start; i <= end; i++) {
+      result.push(daysOfWeek[i]);
+    }
+  } else {
+    for (let i = start; i < daysOfWeek.length; i++) {
+      result.push(daysOfWeek[i]);
+    }
+    for (let i = 0; i <= end; i++) {
+      result.push(daysOfWeek[i]);
+    }
+  }
+  console.log(result);
+  return result;
+}
+
+function isDayOfWeekBetweenAll(startDayOfWeek, endDayOfWeek, dayOfWeekToCheck) {
+  const daysOfWeekBetween = getAllDaysOfWeekBetween(
+    startDayOfWeek,
+    endDayOfWeek
+  );
+  return daysOfWeekBetween.includes(dayOfWeekToCheck);
+}
+
+function getNextDateForDayOfWeek(dayOfWeek) {
+  // Get the current date and day of the week
+  const today = new Date();
+  const currentDayOfWeek = today.getDay();
+
+  // Calculate the number of days until the target day of the week
+  const daysUntilTargetDayOfWeek = (dayOfWeek - currentDayOfWeek + 7) % 7;
+
+  // Calculate the date of the next target day of the week
+  const nextDate = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate() + daysUntilTargetDayOfWeek
+  );
+
+  // Return the next date
+  return nextDate;
+}

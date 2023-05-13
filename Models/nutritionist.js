@@ -66,6 +66,10 @@ var nutritionistSchema = new Schema({
           type: mongoose.Types.ObjectId,
           ref: "User",
         },
+        date: {
+          type: String,
+          required: true,
+        },
         day: {
           type: String,
         },

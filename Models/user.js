@@ -121,6 +121,10 @@ var userSchema = new Schema({
           type: mongoose.Types.ObjectId,
           ref: "Nutritionist",
         },
+        date: {
+          type: String,
+          required: true,
+        },
         day: {
           type: String,
         },
