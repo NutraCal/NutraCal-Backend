@@ -73,3 +73,25 @@ exports.getPlan = catchAsync(async (req, res, next) => {
     res.status(500).json({ message: err.message });
   }
 });
+
+exports.getPlanOfDay = catchAsync(async (req, res, next) => {
+  try {
+    const email = req.body.email;
+    const day = req.body.day;
+    let dayNumber = "day" + req.body.day;
+    console.log(dayNumber);
+    console.log(day);
+    console.log(email);
+    const latestPlan = await DietPlan.findOne({ email: email })
+      .sort({ date: -1 })
+      .exec();
+    if (latestPlan) {
+      console.log(latestPlan[dayNumber]);
+      res.json(latestPlan[dayNumber]);
+    } else {
+      res.status(404).json({ message: "Diet plan not found." });
+    }
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
