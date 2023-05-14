@@ -56,3 +56,20 @@ exports.dietPlan = catchAsync(async (req, response, next) => {
     .status(200)
     .json({ message: "Diet Plan created successfully" });
 });
+
+exports.getPlan = catchAsync(async (req, res, next) => {
+  try {
+    const email = req.body.email;
+    console.log(email);
+    const latestPlan = await DietPlan.findOne({ email: email })
+      .sort({ date: -1 })
+      .exec();
+    if (latestPlan) {
+      res.json(latestPlan);
+    } else {
+      res.status(404).json({ message: "Diet plan not found." });
+    }
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});

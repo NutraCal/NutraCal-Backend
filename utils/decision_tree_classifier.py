@@ -4,6 +4,7 @@ from sklearn.tree import DecisionTreeClassifier
 
 def generate_meal_plan(fitness_goal):
     # Load the dataset
+    
     data = pd.read_csv('E:/Flask/recipes_with_categories.csv')
 
     # Replace NaN values with column means

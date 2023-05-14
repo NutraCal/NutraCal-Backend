@@ -8,5 +8,6 @@ router.put("/updateMeal", mealsController.updateMeal);
 router.delete("/deleteAll", mealsController.deleteAllMeals);
 router.delete("/deleteMeal", mealsController.deleteMeal);
 router.post("/updateCalories", mealsController.updateCalories);
+router.post("/updateStepCount", mealsController.updateStepCount);
 
 module.exports = router;

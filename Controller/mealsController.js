@@ -169,3 +169,36 @@ exports.updateCalories = catchAsync(async (req, res, next) => {
     return res.status(500).json({ msg: "Unable to update record" });
   }
 });
+
+exports.updateStepCount = catchAsync(async (req, res, next) => {
+  try {
+    const user = await User.findOne({ email: req.body.email });
+    if (!user) {
+      return res.status(400).send("User not found");
+    }
+    const userId = user._id;
+    const now = new Date();
+    const currDate =
+      now.getFullYear() +
+      "-" +
+      (now.getMonth() + 1).toString().padStart(2, "0") +
+      "-" +
+      now.getDate();
+    console.log(currDate); // "2023-03-19"
+    const lastRecord = user.stepCount[user.stepCount.length - 1];
+    console.log(req.body.stepCount); // "
+    if (lastRecord && lastRecord.date === currDate) {
+      lastRecord.count = lastRecord.count + req.body.stepCount;
+    } else {
+      user.stepCount.push({
+        count: req.stepCount,
+        date: currDate,
+      });
+    }
+    await user.save();
+    res.json(user);
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ msg: "Unable to update record" });
+  }
+});
