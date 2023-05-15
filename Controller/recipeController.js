@@ -110,7 +110,7 @@ exports.viewRecipes = catchAsync(async (req, res, next) => {
 exports.viewRecipeByName = catchAsync(async (req, res, next) => {
   Recipes.find({ Title: req.body.title }).exec(async function (error, results) {
     if (error) {
-      return next(error);
+      return res.status(500).send(error);
     }
     // Respond with valid data
     res.json(results);
@@ -235,5 +235,23 @@ exports.searchRecipes = catchAsync(async (req, res, next) => {
     }
   } catch (err) {
     console.error(err.message);
+  }
+});
+
+exports.findCalories = catchAsync(async (req, res, next) => {
+  try {
+    const recipeTitles = req.body.titles;
+    const recipeCalories = [];
+    for (const title of recipeTitles) {
+      const recipe = await Recipes.findOne({ Title: title }).exec();
+      if (recipe) {
+        recipeCalories.push(recipe.Calories);
+      } else {
+        recipeCalories.push(null);
+      }
+    }
+    res.status(200).json(recipeCalories);
+  } catch (err) {
+    return res.status(500).send({ message: err.message });
   }
 });

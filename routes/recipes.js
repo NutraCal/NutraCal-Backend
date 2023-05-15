@@ -33,6 +33,7 @@ router.delete("/deleteRecipe", recipeController.deleteRecipe);
 router.post("/filterRecipe", recipeController.filterRecipe);
 router.post("/userRecipes", recipeController.userRecipes);
 router.post("/searchRecipes", recipeController.searchRecipes);
+router.post("/findCalories", recipeController.findCalories);
 
 // /* POST user routes. */
 // router.post("/addRecipe", function(req,res,next){

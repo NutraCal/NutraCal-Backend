@@ -95,3 +95,47 @@ exports.getPlanOfDay = catchAsync(async (req, res, next) => {
     res.status(500).json({ message: err.message });
   }
 });
+
+exports.editPlan = catchAsync(async (req, res, next) => {
+  try {
+    const email = req.body.email;
+    const date = req.body.date;
+    const dayNumber = `day${req.body.day}`;
+    const mealType = req.body.mealType;
+    let mealTypeIndex = 0;
+    if (mealType == "Breakfast") {
+      mealTypeIndex = 0;
+    } else if (mealType == "Lunch") {
+      mealTypeIndex = 1;
+    } else {
+      mealTypeIndex = 2;
+    }
+    const mealName = req.body.mealName;
+
+    const query = { email: email, date: date };
+    const update = {};
+
+    const day = await DietPlan.findOne(query, dayNumber);
+    console.log(day[dayNumber][mealTypeIndex]);
+    console.log(day[dayNumber]);
+
+    if (day && day[dayNumber][mealTypeIndex]) {
+      update[`${dayNumber}.${mealTypeIndex}`] = mealName;
+    } else {
+      res.status(404).json({ message: "Invalid day or meal type." });
+      return;
+    }
+
+    const updatedPlan = await DietPlan.findOneAndUpdate(query, update, {
+      new: true,
+    });
+
+    if (updatedPlan) {
+      res.json(updatedPlan);
+    } else {
+      res.status(404).json({ message: "Diet plan not found." });
+    }
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});

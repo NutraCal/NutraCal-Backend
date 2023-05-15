@@ -84,8 +84,15 @@ exports.removeFromShopList = catchAsync(async (req, res, next) => {
       shoppingList.list.push(...items);
     } else {
       for (const item of items) {
-        if (shoppingList.list.indexOf(item) !== -1) {
-          shoppingList.list = shoppingList.list.filter((i) => i !== item);
+        const index = shoppingList.list.findIndex(
+          (i) => i.toLowerCase() === item.toLowerCase()
+        );
+        if (index !== -1) {
+          shoppingList.list.splice(index, 1);
+        } else {
+          return res
+            .status(200)
+            .json({ message: "Nothing to Update", shoppingList });
         }
       }
     }
