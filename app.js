@@ -7,6 +7,13 @@ var logger = require("morgan");
 var mongoose = require("mongoose");
 const AppError = require("./utils/appError");
 const globalErrorHandler = require("./Controller/errorController");
+var admin = require("firebase-admin");
+
+var serviceAccount = require("./nutracalnotf-firebase-adminsdk-edn22-2e555fb261.json");
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
 
 var app = express();
 app.use(express.json());
@@ -27,6 +34,7 @@ var discussionThread = require("./routes/discussionThread");
 var adminRouter = require("./routes/admin");
 var nutritionistRouter = require("./routes/nutritionist");
 var dietPlanRouter = require("./routes/dietPlan");
+var notificationsRouter = require("./routes/notifications");
 
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
@@ -47,6 +55,7 @@ app.use("/discussionThreads", discussionThread);
 app.use("/admin", adminRouter);
 app.use("/nutritionist", nutritionistRouter);
 app.use("/diet", dietPlanRouter);
+app.use("/notifications", notificationsRouter);
 
 app.all("*", (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));

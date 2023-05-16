@@ -157,7 +157,7 @@ exports.signup = catchAsync(async (req, res, next) => {
       }
       try {
         const savedUser = await user.save();
-        return res.status(200).send("User added successfully");
+        return res.status(200).send(user);
       } catch (err) {
         console.log(err);
       }
@@ -170,6 +170,7 @@ exports.signup = catchAsync(async (req, res, next) => {
       email,
       password,
       qualification,
+      areaOfExpertise,
       startDay,
       endDay,
       startTime,
@@ -192,6 +193,7 @@ exports.signup = catchAsync(async (req, res, next) => {
       email: email,
       password: hashPassword,
       qualification: qualification,
+      areaOfExpertise: areaOfExpertise,
       startDay: startDay,
       endDay: endDay,
       startTime: startTime,
@@ -208,7 +210,7 @@ exports.signup = catchAsync(async (req, res, next) => {
     }
     try {
       const savedUser = await nutritionist.save();
-      return res.status(200).send("Nutritionist registered successfully");
+      return res.status(200).send(nutritionist);
     } catch (err) {
       console.log(err);
     }

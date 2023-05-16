@@ -186,12 +186,13 @@ exports.updateStepCount = catchAsync(async (req, res, next) => {
       now.getDate();
     console.log(currDate); // "2023-03-19"
     const lastRecord = user.stepCount[user.stepCount.length - 1];
-    console.log(req.body.stepCount); // "
+    console.log(lastRecord); //
+    console.log(req.body.stepCount); //
     if (lastRecord && lastRecord.date === currDate) {
       lastRecord.count = lastRecord.count + req.body.stepCount;
     } else {
       user.stepCount.push({
-        count: req.stepCount,
+        count: req.body.stepCount,
         date: currDate,
       });
     }
@@ -199,6 +200,6 @@ exports.updateStepCount = catchAsync(async (req, res, next) => {
     res.json(user);
   } catch (err) {
     console.log(err);
-    return res.status(500).json({ msg: "Unable to update record" });
+    return res.status(500).json({ msg: err.message });
   }
 });

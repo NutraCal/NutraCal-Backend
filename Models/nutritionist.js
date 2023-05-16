@@ -20,6 +20,10 @@ var nutritionistSchema = new Schema({
     type: String,
     required: true,
   },
+  areaOfExpertise: {
+    type: String,
+    required: true,
+  },
   startDay: {
     type: String,
     required: true,
