@@ -81,7 +81,6 @@ var userSchema = new Schema({
       {
         caloriesIntake: {
           type: Number,
-          default: 0,
         },
         proteinsIntake: {
           type: Number,

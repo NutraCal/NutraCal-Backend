@@ -203,3 +203,123 @@ exports.updateStepCount = catchAsync(async (req, res, next) => {
     return res.status(500).json({ msg: err.message });
   }
 });
+
+exports.getCaloriesMacros = catchAsync(async (req, res, next) => {
+  try {
+    const { email } = req.body; // Extract the email from the request body
+
+    const currentDate = new Date(); // Current date
+    currentDate.setHours(0, 0, 0, 0); // Set time to midnight
+
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(currentDate.getDate() - 7); // Subtract 7 days from current date
+    oneWeekAgo.setHours(0, 0, 0, 0); // Set time to midnight
+
+    const formattedCurrentDate = formatDate(currentDate); // Format current date to "YYYY-MM-DD" string
+    const formattedOneWeekAgo = formatDate(oneWeekAgo); // Format one week ago date to "YYYY-MM-DD" string
+
+    const user = await User.findOne({
+      email: email,
+      "calories.date": {
+        $gte: formattedOneWeekAgo,
+        $lte: formattedCurrentDate,
+      },
+    }).select("calories");
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found or no records found for the past seven days.",
+      });
+    }
+
+    // Process the retrieved calories data for the user
+    const processedData = user.calories;
+
+    res.json({ data: processedData });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+exports.getSteps = catchAsync(async (req, res, next) => {
+  try {
+    const { email } = req.body; // Extract the email from the request body
+
+    const currentDate = new Date(); // Current date
+    currentDate.setHours(0, 0, 0, 0); // Set time to midnight
+
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(currentDate.getDate() - 7); // Subtract 7 days from current date
+    oneWeekAgo.setHours(0, 0, 0, 0); // Set time to midnight
+
+    const formattedCurrentDate = formatDate(currentDate); // Format current date to "YYYY-MM-DD" string
+    const formattedOneWeekAgo = formatDate(oneWeekAgo); // Format one week ago date to "YYYY-MM-DD" string
+
+    const user = await User.findOne({
+      email: email,
+      "stepCount.date": {
+        $gte: formattedOneWeekAgo,
+        $lte: formattedCurrentDate,
+      },
+    }).select("stepCount");
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found or no records found for the past seven days.",
+      });
+    }
+
+    // Process the retrieved calories data for the user
+    const processedData = user.stepCount;
+
+    res.json({ data: processedData });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+exports.getWaterIntake = catchAsync(async (req, res, next) => {
+  try {
+    const { email } = req.body; // Extract the email from the request body
+
+    const currentDate = new Date(); // Current date
+    currentDate.setHours(0, 0, 0, 0); // Set time to midnight
+
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(currentDate.getDate() - 7); // Subtract 7 days from current date
+    oneWeekAgo.setHours(0, 0, 0, 0); // Set time to midnight
+
+    const formattedCurrentDate = formatDate(currentDate); // Format current date to "YYYY-MM-DD" string
+    const formattedOneWeekAgo = formatDate(oneWeekAgo); // Format one week ago date to "YYYY-MM-DD" string
+
+    const user = await User.findOne({
+      email: email,
+      "waterIntake.date": {
+        $gte: formattedOneWeekAgo,
+        $lte: formattedCurrentDate,
+      },
+    }).select("waterIntake");
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found or no records found for the past seven days.",
+      });
+    }
+
+    // Process the retrieved calories data for the user
+    const processedData = user.waterIntake;
+
+    res.json({ data: processedData });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+// Helper function to format date as "YYYY-MM-DD" string
+function formatDate(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
