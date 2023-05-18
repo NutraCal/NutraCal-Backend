@@ -56,7 +56,20 @@ exports.sendNotification = catchAsync(async (req, res, next) => {
       title: title ? title : "New Notification",
       body: body ? body : "Log data for better performance!",
       data: {
-        navigate: navigate ? navigate : "Home",
+        navigate: navigate ? navigate : "SelectRole",
+      },
+      android: {
+        // smallIcon: "logo_circle",
+        channelId: "default",
+        importance: 4,
+        actions: [
+          {
+            title: "Mark as Read",
+            pressAction: {
+              id: "read",
+            },
+          },
+        ],
       },
     };
     obj.notifications.push(notification);
@@ -94,4 +107,32 @@ exports.getNotification = catchAsync(async (req, res, next) => {
     status: "success",
     obj,
   });
+});
+
+exports.updateNotification = catchAsync(async (req, res, next) => {
+  const email = req.body.email;
+  const user = await User.findOne({ email: req.body.email });
+  if (!user) {
+    return res.status(400).send({ message: "User not found" });
+  }
+  const userID = user._id;
+
+  const obj = await Notification.findOne({ user: userID });
+  if (!obj) {
+    return res.status(400).send({ message: "User not found" });
+  }
+  try {
+    Notification.findOneAndUpdate(
+      { _id: obj._id },
+      { tokenID: req.body.tokenID },
+      function (err, result) {
+        if (err) {
+          return res.status(500).json({ message: "Error while editing blog" });
+        }
+        res.status(200).json({ message: "Blog successfully updated" });
+      }
+    );
+  } catch (err) {
+    return res.status(400).json({ message: "Error while editing blog" });
+  }
 });

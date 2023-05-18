@@ -212,6 +212,44 @@ exports.filterRecipe = catchAsync(async (req, res, next) => {
   }
 });
 
+exports.suggestRecipe = catchAsync(async (req, res, next) => {
+  try {
+    const ingredients = req.body.ingredients
+      ? req.body.ingredients.split(",")
+      : [];
+
+    if (ingredients.length === 0) {
+      return res.status(400).json({ message: "Please provide ingredients" });
+    }
+
+    const lowerCaseIngredients = ingredients.map((ingredient) =>
+      ingredient.toLowerCase()
+    );
+
+    const recipes = await Recipes.find({
+      Ingredients: { $in: lowerCaseIngredients },
+    });
+
+    const filteredRecipes = recipes
+      .map((recipe) => {
+        const matchingIngredients = recipe.Ingredients.filter((ingredient) =>
+          lowerCaseIngredients.includes(ingredient.toLowerCase())
+        );
+        return {
+          Title: recipe.Title,
+          MatchedIngredients: matchingIngredients,
+          MatchedIngredientsCount: matchingIngredients.length,
+        };
+      })
+      .filter((recipe) => recipe.MatchedIngredientsCount > 2);
+
+    res.status(200).json(filteredRecipes);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server Error");
+  }
+});
+
 exports.userRecipes = catchAsync(async (req, res, next) => {
   try {
     const { email } = req.body;

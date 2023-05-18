@@ -131,7 +131,7 @@ exports.signup = catchAsync(async (req, res, next) => {
       console.log(bmi);
 
       const user = new User({
-        name: name,
+        // name: name,
         email: email,
         password: hashPassword,
         fitnessGoal: fitnessGoal,
@@ -157,7 +157,7 @@ exports.signup = catchAsync(async (req, res, next) => {
       }
       try {
         const savedUser = await user.save();
-        return res.status(200).send(user);
+        return res.status(200).json(user);
       } catch (err) {
         console.log(err);
       }
@@ -210,7 +210,7 @@ exports.signup = catchAsync(async (req, res, next) => {
     }
     try {
       const savedUser = await nutritionist.save();
-      return res.status(200).send(nutritionist);
+      return res.status(200).json(nutritionist);
     } catch (err) {
       console.log(err);
     }

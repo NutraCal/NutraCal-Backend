@@ -5,17 +5,18 @@ const User = require("../Models/user");
 
 exports.getShopList = catchAsync(async (req, res, next) => {
   try {
-    ShoppingList.find({ user: req.params.id }).exec(async function (
-      error,
-      results
-    ) {
-      if (error) {
-        res.status(400).json(error);
-      }
-      res.status(200).json(results[0].list);
+    const shoppingList = await ShoppingList.findOne({ user: req.params.id });
+    if (!shoppingList || shoppingList.list.length == 0) {
+      return res
+        .status(400)
+        .send({ message: "No items found in shopping list" });
+    }
+    const list = shoppingList.list;
+    return res.status(200).json({
+      list,
     });
   } catch (err) {
-    res.status(500).json(err);
+    return res.status(500).send({ message: "Error: " + err.message });
   }
 });
 
@@ -34,6 +35,9 @@ exports.deleteShopList = catchAsync(async (req, res, next) => {
 
 exports.updateShopList = catchAsync(async (req, res, next) => {
   try {
+    if (!req.body.userId || !req.body.list) {
+      return res.status(400).send({ message: "Kindly fill all the fields" });
+    }
     console.log(req.body.userId);
     let shoppingList = await ShoppingList.findOne({ user: req.body.userId });
     const items = req.body.list;
