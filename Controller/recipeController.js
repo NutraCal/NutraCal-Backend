@@ -183,7 +183,9 @@ exports.approveRecipe = catchAsync(async (req, res, next) => {
 exports.filterRecipe = catchAsync(async (req, res, next) => {
   try {
     const category = req.body.category;
-    const ingredients = req.body.ingredients;
+    const ingredients = req.body.ingredients.map(
+      (ingredient) => new RegExp(ingredient, "i")
+    );
     const caloriesMin = req.body.calories_min
       ? parseInt(req.body.calories_min)
       : 0;
