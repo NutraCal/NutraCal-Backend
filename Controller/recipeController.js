@@ -183,9 +183,13 @@ exports.approveRecipe = catchAsync(async (req, res, next) => {
 exports.filterRecipe = catchAsync(async (req, res, next) => {
   try {
     const category = req.body.category;
-    const ingredients = req.body.ingredients.map(
-      (ingredient) => new RegExp(ingredient, "i")
-    );
+    let ingredients = "";
+    if (req.body.ingredients) {
+      ingredients = req.body.ingredients.map(
+        (ingredient) => new RegExp(ingredient, "i")
+      );
+    }
+
     const caloriesMin = req.body.calories_min
       ? parseInt(req.body.calories_min)
       : 0;
@@ -207,7 +211,7 @@ exports.filterRecipe = catchAsync(async (req, res, next) => {
     res.status(200).json(recipes);
   } catch (err) {
     console.error(err.message);
-    res.status(500).send("Server Error");
+    res.status(500).send(err.message);
   }
 });
 
