@@ -183,9 +183,7 @@ exports.approveRecipe = catchAsync(async (req, res, next) => {
 exports.filterRecipe = catchAsync(async (req, res, next) => {
   try {
     const category = req.body.category;
-    const ingredients = req.body.ingredients
-      ? req.body.ingredients.split(",")
-      : [];
+    const ingredients = req.body.ingredients;
     const caloriesMin = req.body.calories_min
       ? parseInt(req.body.calories_min)
       : 0;
@@ -204,7 +202,6 @@ exports.filterRecipe = catchAsync(async (req, res, next) => {
       query.Calories = { $gte: caloriesMin, $lte: caloriesMax };
     }
     const recipes = await Recipes.find(query);
-    console.log(recipes);
     res.status(200).json(recipes);
   } catch (err) {
     console.error(err.message);
@@ -214,9 +211,7 @@ exports.filterRecipe = catchAsync(async (req, res, next) => {
 
 exports.suggestRecipe = catchAsync(async (req, res, next) => {
   try {
-    const ingredients = req.body.ingredients
-      ? req.body.ingredients.split(",")
-      : [];
+    const ingredients = req.body.ingredients;
 
     if (ingredients.length === 0) {
       return res.status(400).json({ message: "Please provide ingredients" });
