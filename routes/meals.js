@@ -22,7 +22,7 @@ const upload = multer({
   fileFilter: multerFilter,
 });
 
-router.get("/viewMeal/:email", mealsController.getMeal);
+router.get("/viewMeal/:email", mealsController.viewMeal);
 router.post("/dailyLog", mealsController.dailyLog);
 router.post("/addMeal/:email", upload.single("photo"), mealsController.addMeal);
 router.put("/updateMeal", mealsController.updateMeal);
@@ -33,5 +33,6 @@ router.post("/updateStepCount", mealsController.updateStepCount);
 router.post("/getCaloriesMacros", mealsController.getCaloriesMacros);
 router.post("/getSteps", mealsController.getSteps);
 router.post("/getWaterIntake", mealsController.getWaterIntake);
+router.post("/getMeal", mealsController.getMeal);
 
 module.exports = router;

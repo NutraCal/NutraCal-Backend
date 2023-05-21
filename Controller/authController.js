@@ -131,7 +131,7 @@ exports.signup = catchAsync(async (req, res, next) => {
       console.log(bmi);
 
       const user = new User({
-        // name: name,
+        name: name,
         email: email,
         password: hashPassword,
         fitnessGoal: fitnessGoal,
@@ -236,7 +236,6 @@ exports.login = catchAsync(async (req, res, next) => {
     if (validPass) {
       createSendToken(user, 200, req, res);
     } else {
-      console.log("Here");
       return res.status(500).send("Couldn't Login, Incorrect Password");
     }
   } catch (e) {
@@ -245,7 +244,6 @@ exports.login = catchAsync(async (req, res, next) => {
 });
 
 exports.googleLogin = catchAsync(async (req, res, next) => {
-  console.log("Inside Function");
   const { email } = req.body;
   const user = await User.findOne({ email });
   if (user != null) {

@@ -3,7 +3,7 @@ const catchAsync = require("../utils/catchAsync");
 const Meals = require("../Models/meals");
 const User = require("../Models/user");
 
-exports.getMeal = catchAsync(async (req, res, next) => {
+exports.viewMeal = catchAsync(async (req, res, next) => {
   const user = await User.findOne({ email: req.params.email });
   if (!user) {
     return res.status(400).send("User not found");
@@ -45,16 +45,16 @@ exports.addMeal = catchAsync(async (req, res, next) => {
     return res.status(400).send("User not found");
   }
   const userId = user._id;
-
-  const now = new Date();
-  const currDate =
-    now.getFullYear() +
-    "-" +
-    (now.getMonth() + 1).toString().padStart(2, "0") +
-    "-" +
-    now.getDate();
-  const { name, category, calories, proteins, fats, carbohydrates, time } =
-    req.body;
+  const {
+    name,
+    category,
+    calories,
+    proteins,
+    fats,
+    carbohydrates,
+    date,
+    time,
+  } = req.body;
   if (
     !userId ||
     !name ||
@@ -63,6 +63,7 @@ exports.addMeal = catchAsync(async (req, res, next) => {
     !proteins ||
     !fats ||
     !carbohydrates ||
+    !date ||
     !time
   ) {
     return res.status(400).send("Kindly provide all the fields");
@@ -75,7 +76,7 @@ exports.addMeal = catchAsync(async (req, res, next) => {
       proteins: proteins,
       fats: fats,
       carbohydrates: carbohydrates,
-      date: currDate,
+      date: date,
       time: time,
     });
     if (req.file) {
@@ -96,16 +97,8 @@ exports.addMeal = catchAsync(async (req, res, next) => {
 });
 
 exports.updateMeal = catchAsync(async (req, res, next) => {
-  const {
-    mealId,
-    name,
-    category,
-    calories,
-    proteins,
-    fats,
-    carbohydrates,
-    date,
-  } = req.body;
+  const { mealId, name, category, calories, proteins, fats, carbohydrates } =
+    req.body;
   Meals.findOneAndUpdate(
     { _id: mealId },
     {
@@ -115,7 +108,6 @@ exports.updateMeal = catchAsync(async (req, res, next) => {
       proteins: proteins,
       fats: fats,
       carbohydrates: carbohydrates,
-      date: date,
     },
     function (err, result) {
       if (err) {
@@ -157,15 +149,8 @@ exports.updateCalories = catchAsync(async (req, res, next) => {
       return res.status(400).send("User not found");
     }
     const userId = user._id;
-    const now = new Date();
-    const currDate =
-      now.getFullYear() +
-      "-" +
-      (now.getMonth() + 1).toString().padStart(2, "0") +
-      "-" +
-      now.getDate();
-    console.log(currDate); // "2023-03-19"
-    const meals = await Meals.find({ user: userId, date: currDate });
+    const date = req.body.date;
+    const meals = await Meals.find({ user: userId, date: date });
     const nutrientSums = {
       calories: 0,
       proteins: 0,
@@ -181,7 +166,7 @@ exports.updateCalories = catchAsync(async (req, res, next) => {
 
     console.log(nutrientSums);
     const lastCaloriesRecord = user.calories[user.calories.length - 1];
-    if (lastCaloriesRecord && lastCaloriesRecord.date === currDate) {
+    if (lastCaloriesRecord && lastCaloriesRecord.date === date) {
       lastCaloriesRecord.caloriesIntake = nutrientSums.calories;
       lastCaloriesRecord.proteinsIntake = nutrientSums.proteins;
       lastCaloriesRecord.fatsIntake = nutrientSums.fats;
@@ -192,7 +177,7 @@ exports.updateCalories = catchAsync(async (req, res, next) => {
         proteinsIntake: nutrientSums.proteins,
         fatsIntake: nutrientSums.fats,
         carbsIntake: nutrientSums.carbohydrates,
-        date: currDate,
+        date: date,
       });
     }
     await user.save();
@@ -356,3 +341,38 @@ function formatDate(date) {
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 }
+
+exports.getMeal = catchAsync(async (req, res, next) => {
+  const user = await User.findOne({ email: req.body.email });
+  if (!user) {
+    return res.status(400).send("User not found");
+  }
+  const userId = user._id;
+
+  const category = req.body.category;
+  const date = req.body.date;
+  const name = req.body.name;
+
+  const query = { user: userId };
+
+  if (category) {
+    query.category = category;
+  }
+  if (date) {
+    query.date = date;
+  }
+  if (name) {
+    query.name = name;
+  }
+
+  Meals.find(query).exec((error, results) => {
+    if (error) {
+      res.status(500).send(error);
+    }
+    if (results.length > 0) {
+      res.json(results);
+    } else {
+      res.status(404).send("No results found");
+    }
+  });
+});
