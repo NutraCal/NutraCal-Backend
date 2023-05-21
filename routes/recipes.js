@@ -36,19 +36,4 @@ router.post("/searchRecipes", recipeController.searchRecipes);
 router.post("/findCalories", recipeController.findCalories);
 router.post("/suggestRecipes", recipeController.suggestRecipe);
 
-// /* POST user routes. */
-// router.post("/addRecipe", function(req,res,next){
-//   Recipes.create(req.body)
-//     .then(
-//       (recipe) => {
-//         console.log("Recipe added ", recipe);
-//         res.statusCode = 200;
-//         res.setHeader("Content-Type", "application/json");
-//         res.json(recipe);
-//       },
-//       (err) => next(err)
-//     )
-//     .catch((err) => next(err));
-// })
-
 module.exports = router;

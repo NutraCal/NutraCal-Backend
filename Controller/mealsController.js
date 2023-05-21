@@ -78,6 +78,14 @@ exports.addMeal = catchAsync(async (req, res, next) => {
       date: currDate,
       time: time,
     });
+    if (req.file) {
+      console.log("Storing Image");
+      newMeal.Image = {
+        filename: req.file.filename,
+        contentType: req.file.mimetype,
+        url: "http://localhost:8000/" + req.file.filename,
+      };
+    }
     try {
       const savedMeal = await newMeal.save();
       return res.status(200).send("Meal added successfully");

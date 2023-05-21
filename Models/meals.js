@@ -38,6 +38,17 @@ var mealSchema = new Schema({
     type: String,
     required: true,
   },
+  Image: {
+    filename: {
+      type: String,
+    },
+    contentType: {
+      type: String,
+    },
+    url: {
+      type: String,
+    },
+  },
 });
 
 module.exports = mongoose.model("Meals", mealSchema);
