@@ -167,13 +167,16 @@ exports.updateCalories = catchAsync(async (req, res, next) => {
     console.log(nutrientSums);
     const lastCaloriesRecord = user.calories[user.calories.length - 1];
     if (lastCaloriesRecord && lastCaloriesRecord.date === date) {
+      console.log(nutrientSums.calories);
+
       lastCaloriesRecord.caloriesIntake = nutrientSums.calories;
       lastCaloriesRecord.proteinsIntake = nutrientSums.proteins;
       lastCaloriesRecord.fatsIntake = nutrientSums.fats;
       lastCaloriesRecord.carbsIntake = nutrientSums.carbohydrates;
     } else {
+      console.log("here", nutrientSums.calories);
       user.calories.push({
-        caloriesIntakes: nutrientSums.calories,
+        caloriesIntake: nutrientSums.calories,
         proteinsIntake: nutrientSums.proteins,
         fatsIntake: nutrientSums.fats,
         carbsIntake: nutrientSums.carbohydrates,

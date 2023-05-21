@@ -5,17 +5,13 @@ const User = require("../Models/user");
 const Notification = require("../Models/notifications");
 
 exports.registerNotification = catchAsync(async (req, res, next) => {
-  console.log("register");
   const { tokenID, email } = req.body;
-  console.log(email);
   const user = await User.findOne({ email: req.body.email });
   if (!user) {
     return res.status(400).send("User not found");
   }
   const userID = user._id;
-  console.log(userID);
   const obj = await Notification.findOne({ user: userID });
-  console.log("here");
   if (obj) {
     return res.status(200).json({
       status: "success",
@@ -24,7 +20,6 @@ exports.registerNotification = catchAsync(async (req, res, next) => {
       },
     });
   }
-  console.log("Token already registered");
   const newNotification = new Notification({
     user: userID, // Assign a valid user ID here
     tokenID: tokenID, // Assign a valid token ID here
