@@ -242,7 +242,7 @@ exports.suggestRecipe = catchAsync(async (req, res, next) => {
           MatchedIngredientsCount: matchingIngredients.length,
         };
       })
-      .filter((recipe) => recipe.MatchedIngredientsCount > 2);
+      .filter((recipe) => recipe.MatchedIngredientsCount >= 2);
 
     res.status(200).json(filteredRecipes);
   } catch (err) {
