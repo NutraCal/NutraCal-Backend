@@ -34,6 +34,7 @@ router.post("/filterRecipe", recipeController.filterRecipe);
 router.post("/userRecipes", recipeController.userRecipes);
 router.post("/searchRecipes", recipeController.searchRecipes);
 router.post("/findCalories", recipeController.findCalories);
+router.post("/likeRecipe", recipeController.likeRecipe);
 router.post("/suggestRecipes", recipeController.suggestRecipe);
 
 module.exports = router;

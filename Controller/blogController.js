@@ -180,6 +180,25 @@ exports.userViewUnapproved = catchAsync(async (req, res, next) => {
   }
 });
 
+// User can view all their blogs that are not accepted by admin
+exports.userViewApproved = catchAsync(async (req, res, next) => {
+  if (!req.body.userId) {
+    return res.status(404).json({ message: "Kindly fill all required fields" });
+  }
+  try {
+    Blogs.find({ User: req.body.userId })
+      .find({ Approved: 1 })
+      .exec(async function (error, results) {
+        if (error) {
+          return res.status(500).json({ msg: "Unable to find user" });
+        }
+        // Respond with valid data
+        res.status(200).json(results);
+      });
+  } catch (error) {
+    return res.status(400).json({ message: "Error viewing blogs" });
+  }
+});
 // Admin can view all blogs that are not approved
 exports.viewAllUnapproved = catchAsync(async (req, res, next) => {
   try {
@@ -201,6 +220,7 @@ exports.addComments = catchAsync(async (req, res, next) => {
     if (!req.body.title || !req.body.email || !req.body.comment) {
       return res.status(500).json({ msg: "Kindly fill all the fields" });
     }
+    const date = new Date();
     Blogs.findOneAndUpdate(
       { Title: req.body.title },
       {
@@ -208,7 +228,7 @@ exports.addComments = catchAsync(async (req, res, next) => {
           Comments: {
             email: req.body.email,
             comment: req.body.comment,
-            date: Date.now,
+            date: date,
           },
         },
       },
@@ -284,6 +304,7 @@ exports.addCommentReply = catchAsync(async (req, res, next) => {
     if (!title || !commentId || !email || !reply) {
       return res.status(400).json({ message: "All fields are required" });
     }
+    const date = new Date();
 
     // Find the blog post with the comment and add the reply
     const blogPost = await Blogs.findOne({ Title: title });
@@ -301,7 +322,7 @@ exports.addCommentReply = catchAsync(async (req, res, next) => {
     comment.replies.push({
       email: email,
       comment: reply,
-      date: Date.now(),
+      date: date,
     });
 
     // Save the updated blog post
@@ -370,6 +391,21 @@ exports.deleteReply = catchAsync(async (req, res, next) => {
     return res.status(200).json({ message: "Success" });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+});
+exports.getComments = catchAsync(async (req, res, next) => {
+  try {
+    if (!req.body.title) {
+      return res.status(404).send("Kindly provide the title");
+    } else {
+      const blog = Blogs.findOne({ Title: req.body.title });
+      if (!blog) {
+        return res.status(404).send("Blog not found");
+      }
+      return res.status(200).json(blog.Comments);
+    }
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 });
 

@@ -2,8 +2,7 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 const recipesSchema = new Schema({
   User: {
-    type: mongoose.Types.ObjectId,
-    ref: "User",
+    type: String,
     required: true,
   },
   Title: {
@@ -60,8 +59,8 @@ const recipesSchema = new Schema({
   LikesCount: {
     type: [
       {
-        userId: {
-          type: mongoose.Types.ObjectId,
+        email: {
+          type: String,
         },
         like: {
           type: Number,

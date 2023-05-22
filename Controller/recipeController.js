@@ -294,3 +294,43 @@ exports.findCalories = catchAsync(async (req, res, next) => {
     return res.status(500).send({ message: err.message });
   }
 });
+
+//Route to like the Recipe
+exports.likeRecipe = catchAsync(async (req, res, next) => {
+  try {
+    const title = req.body.title;
+    const email = req.body.email;
+
+    // Check if the blog post exists in the database
+    const recipe = await Recipes.findOne({ Title: title });
+    if (!recipe) {
+      return res.status(404).json({ message: "Recipe not found" });
+    }
+
+    // Check if the user has already liked the blog post
+    const existingLike = recipe.LikesCount.find((like) => like.email === email);
+
+    if (existingLike) {
+      // If the user has already liked the post, remove their like
+      recipe.LikesCount = recipe.LikesCount.filter(
+        (like) => like.email !== email
+      );
+    } else {
+      // Otherwise, add a new like
+      recipe.LikesCount.push({
+        email: email,
+        like: 1,
+      });
+    }
+
+    // Save the updated blog post to the database
+    const updatedRecipe = await recipe.save();
+
+    res.status(200).json({
+      message: "Recipe likes saved successfully",
+      likesCount: updatedRecipe.LikesCount.length,
+    });
+  } catch (err) {
+    return res.status(400).json({ message: err.message });
+  }
+});

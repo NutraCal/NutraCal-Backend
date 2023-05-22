@@ -395,5 +395,41 @@ exports.getWaterIntake = catchAsync(async (req, res, next) => {
     console.log(err.message);
   }
 });
+
+exports.getAppointments = catchAsync(async (req, res, next) => {
+  try {
+    if (!req.body.email) {
+      return res.status(400).send("Kindly provided email address");
+    } else {
+      const user = await User.findOne({ email: req.body.email });
+      if (!user) {
+        return res.status(404).send("User not found");
+      } else {
+        res.json(user.appointments);
+      }
+    }
+  } catch (err) {
+    return res.status(500).send("Error: " + err.message);
+  }
+});
+
+exports.getName = catchAsync(async (req, res, next) => {
+  try {
+    if (!req.body.id) {
+      return res.status(400).send("Kindly provide user id");
+    } else {
+      let name = await Nutritionist.findById(req.body.id);
+      if (!name) {
+        name = await User.findById(req.body.id);
+        if (!name) {
+          return res.status(404).send("No such user");
+        }
+      }
+      return res.status(200).send(name.name);
+    }
+  } catch (err) {
+    return res.status(500).send(err.message);
+  }
+});
 exports.getUser = factory.getOne(User);
 exports.getAllUsers = factory.getAll(User);

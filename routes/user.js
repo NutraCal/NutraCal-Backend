@@ -35,5 +35,7 @@ router.get("/getUserId/:email", authController.getUserId);
 router.post("/updateWaterIntake", authController.updateWaterIntake);
 router.get("/", authController.getAllUsers);
 router.post("/verifyToken", authController.verifyToken);
+router.post("/getAppointments", authController.getAppointments);
+router.post("/getName", authController.getName);
 
 module.exports = router;

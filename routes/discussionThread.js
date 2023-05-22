@@ -5,6 +5,7 @@ const discussionThreadController = require("../Controller/discussionThreadContro
 router.get("/viewThreads", discussionThreadController.viewDiscussionThreads);
 router.get("/viewAllUnapproved", discussionThreadController.viewAllUnapproved);
 router.post("/viewUnapproved", discussionThreadController.userViewUnapproved);
+router.post("/viewApproved", discussionThreadController.userViewApproved);
 router.post(
   "/viewThreadByTitle",
   discussionThreadController.viewDiscussionThreadByTitle
@@ -27,5 +28,6 @@ router.delete(
   discussionThreadController.deleteDiscussionThread
 );
 router.put("/likeThread", discussionThreadController.likeDiscussionThread);
+router.post("/getComments", discussionThreadController.getComments);
 
 module.exports = router;

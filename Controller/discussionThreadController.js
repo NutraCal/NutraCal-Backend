@@ -199,7 +199,25 @@ exports.userViewUnapproved = catchAsync(async (req, res, next) => {
     return res.status(400).json({ message: "Error viewing discussionThreads" });
   }
 });
-
+// User can view all their discussionThreads that are not accepted by admin
+exports.userViewApproved = catchAsync(async (req, res, next) => {
+  if (!req.body.userId) {
+    return res.status(404).json({ message: "Kindly fill all required fields" });
+  }
+  try {
+    DiscussionThreads.find({ User: req.body.userId })
+      .find({ Approved: 1 })
+      .exec(async function (error, results) {
+        if (error) {
+          return res.status(500).json({ msg: "Unable to find user" });
+        }
+        // Respond with valid data
+        res.status(200).json(results);
+      });
+  } catch (error) {
+    return res.status(400).json({ message: "Error viewing discussionThreads" });
+  }
+});
 // Admin can view all discussionThreads that are not approved
 exports.viewAllUnapproved = catchAsync(async (req, res, next) => {
   try {
@@ -226,6 +244,7 @@ exports.addComments = catchAsync(async (req, res, next) => {
     if (!req.body.title || !req.body.email || !req.body.comment) {
       return res.status(500).json({ msg: "Kindly fill all the fields" });
     }
+    const date = new Date();
     DiscussionThreads.findOneAndUpdate(
       { Title: req.body.title },
       {
@@ -233,7 +252,7 @@ exports.addComments = catchAsync(async (req, res, next) => {
           Comments: {
             email: req.body.email,
             comment: req.body.comment,
-            date: Date.now,
+            date: date,
           },
         },
       },
@@ -322,6 +341,7 @@ exports.addCommentReply = catchAsync(async (req, res, next) => {
       return res.status(404).json({ message: "DiscussionThread not found" });
     }
 
+    const date = new Date();
     const comment = discussionThreadPost.Comments.find(
       (c) => c._id.toString() === commentId.toString()
     );
@@ -332,7 +352,7 @@ exports.addCommentReply = catchAsync(async (req, res, next) => {
     comment.replies.push({
       email: email,
       comment: reply,
-      date: Date.now(),
+      date: date,
     });
 
     // Save the updated discussionThread post
@@ -343,6 +363,22 @@ exports.addCommentReply = catchAsync(async (req, res, next) => {
       .json({ message: "Reply added successfully", post: savedPost });
   } catch (err) {
     return res.status(400).json({ message: err.message });
+  }
+});
+
+exports.getComments = catchAsync(async (req, res, next) => {
+  try {
+    if (!req.body.title) {
+      return res.status(404).send("Kindly provide the title");
+    } else {
+      const thread = await DiscussionThreads.findOne({ Title: req.body.title });
+      if (!thread) {
+        return res.status(404).send("Thread not found");
+      }
+      return res.status(200).json(thread.Comments);
+    }
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 });
 

@@ -7,4 +7,5 @@ router.post("/rateNutritionist", authController.rateNutritionist);
 router.post("/followNutritionist", authController.followNutritionist);
 router.post("/bookAppointment", authController.bookAppointment);
 router.delete("/cancelAppointment", authController.cancelAppointment);
+router.post("/getAppointments", authController.getAppointments);
 module.exports = router;
