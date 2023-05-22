@@ -25,7 +25,7 @@ const upload = multer({
 router.post("/addRecipe", upload.single("photo"), recipeController.addRecipe);
 router.get("/viewRecipes", recipeController.viewRecipes);
 router.post("/viewRecipeByName", recipeController.viewRecipeByName); //TO THIS
-router.post("/detectText", recipeController.detectText);
+router.post("/detectText", upload.single("photo"), recipeController.detectText);
 router.put("/editRecipe", recipeController.editRecipe);
 router.put("/edit/likes", recipeController.updateLikes);
 router.put("/approveRecipe", recipeController.approveRecipe);
