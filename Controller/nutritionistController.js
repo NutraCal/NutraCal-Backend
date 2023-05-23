@@ -262,6 +262,40 @@ exports.cancelAppointment = catchAsync(async (req, res, next) => {
   }
 });
 
+exports.searchNutritionist = catchAsync(async (req, res, next) => {
+  try {
+    if (!req.body.name) {
+      return res.status(400).send("Kindly provide the name");
+    } else {
+      const nutritionist = await Nutritionist.find({ name: req.body.name });
+      if (!nutritionist) {
+        return res.status(400).send("Nutritionist not found");
+      }
+      if (nutritionist.length > 0) {
+        return res.status(200).send(nutritionist);
+      }
+      return res.status(400).send("Nutritionist not found");
+    }
+  } catch (e) {
+    return res.status(500).send({ message: e.message });
+  }
+});
+
+exports.viewNutritionists = catchAsync(async (req, res, next) => {
+  try {
+    const nutritionist = await Nutritionist.find();
+    if (!nutritionist) {
+      return res.status(400).send("Nutritionist not found");
+    }
+    if (nutritionist.length > 0) {
+      return res.status(200).send(nutritionist);
+    }
+    return res.status(400).send("Nutritionist not found");
+  } catch (e) {
+    return res.status(500).send({ message: e.message });
+  }
+});
+
 function isDayOfWeekBetween(startDayOfWeek, endDayOfWeek, dayOfWeekToCheck) {
   // Convert the input days of the week to their corresponding numbers
   const daysOfWeek = [
