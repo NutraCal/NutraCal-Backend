@@ -1,5 +1,34 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
+const User = require("./user");
+
+const commentSchema = new Schema({
+  user: {
+    type: User.schema, // Embed the user schema directly
+  },
+  comment: {
+    type: String,
+  },
+  date: {
+    type: String,
+    default: Date.now,
+  },
+  replies: [
+    {
+      user: {
+        type: User.schema, // Embed the user schema directly
+      },
+      comment: {
+        type: String,
+      },
+      date: {
+        type: String,
+        default: Date.now,
+      },
+    },
+  ],
+});
+
 const blogsSchema = new Schema({
   User: {
     type: mongoose.Types.ObjectId,
@@ -17,8 +46,8 @@ const blogsSchema = new Schema({
   LikesCount: {
     type: [
       {
-        email: {
-          type: String,
+        user: {
+          type: User.schema, // Embed the user schema directly
         },
         like: {
           type: Number,
@@ -27,34 +56,7 @@ const blogsSchema = new Schema({
     ],
   },
   Comments: {
-    type: [
-      {
-        email: {
-          type: String,
-        },
-        comment: {
-          type: String,
-        },
-        date: {
-          type: String,
-          default: Date.now,
-        },
-        replies: [
-          {
-            email: {
-              type: String,
-            },
-            comment: {
-              type: String,
-            },
-            date: {
-              type: String,
-              default: Date.now,
-            },
-          },
-        ],
-      },
-    ],
+    type: [commentSchema],
   },
   DateCreated: {
     type: Date,

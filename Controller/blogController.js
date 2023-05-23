@@ -220,13 +220,14 @@ exports.addComments = catchAsync(async (req, res, next) => {
     if (!req.body.title || !req.body.email || !req.body.comment) {
       return res.status(500).json({ msg: "Kindly fill all the fields" });
     }
+    const user = await User.findOne({ email: req.body.email });
     const date = new Date();
     Blogs.findOneAndUpdate(
       { Title: req.body.title },
       {
         $push: {
           Comments: {
-            email: req.body.email,
+            user: user,
             comment: req.body.comment,
             date: date,
           },
@@ -311,6 +312,7 @@ exports.addCommentReply = catchAsync(async (req, res, next) => {
     if (!blogPost) {
       return res.status(404).json({ message: "Blog not found" });
     }
+    const user = await User.findOne({ email: email });
 
     const comment = blogPost.Comments.find(
       (c) => c._id.toString() === commentId.toString()
@@ -320,11 +322,10 @@ exports.addCommentReply = catchAsync(async (req, res, next) => {
     }
 
     comment.replies.push({
-      email: email,
+      user: user,
       comment: reply,
       date: date,
     });
-
     // Save the updated blog post
     const savedPost = await blogPost.save();
 
@@ -398,10 +399,11 @@ exports.getComments = catchAsync(async (req, res, next) => {
     if (!req.body.title) {
       return res.status(404).send("Kindly provide the title");
     } else {
-      const blog = Blogs.findOne({ Title: req.body.title });
+      const blog = await Blogs.findOne({ Title: req.body.title });
       if (!blog) {
         return res.status(404).send("Blog not found");
       }
+      console.log("here");
       return res.status(200).json(blog.Comments);
     }
   } catch (err) {

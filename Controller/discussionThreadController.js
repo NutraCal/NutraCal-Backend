@@ -1,6 +1,7 @@
 let config = require("../config");
 const catchAsync = require("../utils/catchAsync");
 const DiscussionThreads = require("../Models/discThread");
+const Users = require("../Models/user");
 
 exports.postDiscussionThread = catchAsync(async (req, res, next) => {
   if (!req.body.userId || !req.body.title || !req.body.content) {
@@ -245,12 +246,13 @@ exports.addComments = catchAsync(async (req, res, next) => {
       return res.status(500).json({ msg: "Kindly fill all the fields" });
     }
     const date = new Date();
+    const user = await Users.findOne({ email: req.body.email });
     DiscussionThreads.findOneAndUpdate(
       { Title: req.body.title },
       {
         $push: {
           Comments: {
-            email: req.body.email,
+            user: user,
             comment: req.body.comment,
             date: date,
           },
@@ -332,6 +334,7 @@ exports.addCommentReply = catchAsync(async (req, res, next) => {
     if (!title || !commentId || !email || !reply) {
       return res.status(400).json({ message: "All fields are required" });
     }
+    const user = await Users.findOne({ email: req.body.email });
 
     // Find the discussionThread post with the comment and add the reply
     const discussionThreadPost = await DiscussionThreads.findOne({
@@ -350,7 +353,7 @@ exports.addCommentReply = catchAsync(async (req, res, next) => {
     }
 
     comment.replies.push({
-      email: email,
+      user: user,
       comment: reply,
       date: date,
     });
