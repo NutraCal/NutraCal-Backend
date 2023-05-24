@@ -20,7 +20,7 @@ exports.postDiscussionThread = catchAsync(async (req, res, next) => {
     User: req.body.userId,
     Title: req.body.title,
     Content: req.body.content,
-    Approved: 0,
+    Approved: 1,
   });
 
   // Save the discussionThread post to the database
