@@ -85,6 +85,9 @@ const recipesSchema = new Schema({
       type: String,
     },
   },
+  Remarks: {
+    type: String,
+  },
 });
 
 module.exports = mongoose.model("Recipes", recipesSchema);

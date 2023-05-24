@@ -38,5 +38,6 @@ router.post("/searchRecipes", recipeController.searchRecipes);
 router.post("/findCalories", recipeController.findCalories);
 router.post("/likeRecipe", recipeController.likeRecipe);
 router.post("/suggestRecipes", recipeController.suggestRecipe);
+router.put("/rejectRecipe", recipeController.rejectRecipe);
 
 module.exports = router;

@@ -138,7 +138,31 @@ exports.viewRecipeByName = catchAsync(async (req, res, next) => {
     res.json(results);
   });
 });
-
+//Admin can provide remarks on blog while rejecting any blog written by user
+exports.rejectRecipe = catchAsync(async (req, res, next) => {
+  try {
+    if (!req.body.title) {
+      return res
+        .status(404)
+        .json({ message: "Kindly fill all required fields" });
+    }
+    Recipes.findOneAndUpdate(
+      { Title: req.body.title },
+      {
+        Remarks: req.body.remarks,
+        Approved: 0,
+      },
+      function (err, result) {
+        if (err) {
+          return res.status(400).json(err);
+        }
+        res.status(200).json({ message: "Recipe Rejected and Remarks added" });
+      }
+    );
+  } catch (err) {
+    return res.status(400).json({ message: err.message });
+  }
+});
 exports.deleteRecipe = catchAsync(async (req, res, next) => {
   try {
     const recipe = await Recipes.findOne({ Title: req.body.title });
