@@ -96,7 +96,7 @@ exports.addRecipe = catchAsync(async (req, res, next) => {
     Carbs: carbs,
     Allergies: allergies,
     ServingSize: servingSize,
-    Approve: approved,
+    Approved: approved,
   });
   if (req.file) {
     console.log("Storing Image");
@@ -117,7 +117,7 @@ exports.addRecipe = catchAsync(async (req, res, next) => {
 
 exports.viewRecipes = catchAsync(async (req, res, next) => {
   try {
-    Recipes.find({ Approve: 1 }).exec(async function (error, results) {
+    Recipes.find({ Approved: 1 }).exec(async function (error, results) {
       if (error) {
         return res.status(500).json({ msg: "Unable to find recipes" });
       }
@@ -194,7 +194,7 @@ exports.approveRecipe = catchAsync(async (req, res, next) => {
   Recipes.findOneAndUpdate(
     { _id: req.body.recipeId },
     {
-      Approve: 1,
+      Approved: 1,
     },
     function (err, result) {
       if (err) {
@@ -282,7 +282,7 @@ exports.userRecipes = catchAsync(async (req, res, next) => {
     const user = await User.findOne({ email: req.body.email });
     const userId = user._id;
     console.log(userId);
-    recipes = await Recipes.find({ User: userId, Approve: 1 });
+    recipes = await Recipes.find({ User: userId, Approved: 1 });
     res.json(recipes);
   } catch (err) {
     console.error(err.message);
@@ -294,7 +294,7 @@ exports.userUnapprovedRecipes = catchAsync(async (req, res, next) => {
     const user = await User.findOne({ email: req.body.email });
     const userId = user._id;
     console.log(userId);
-    recipes = await Recipes.find({ User: userId, Approve: 0 });
+    recipes = await Recipes.find({ User: userId, Approved: 0 });
     res.json(recipes);
   } catch (err) {
     console.error(err.message);
@@ -374,7 +374,7 @@ exports.likeRecipe = catchAsync(async (req, res, next) => {
 
 exports.viewAllUnapproved = catchAsync(async (req, res, next) => {
   try {
-    Recipes.find({ Approve: 0 }).exec(async function (error, results) {
+    Recipes.find({ Approved: 0 }).exec(async function (error, results) {
       if (error) {
         return res.status(500).json({ msg: "Unable to find recipes" });
       }

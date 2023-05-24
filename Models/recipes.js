@@ -71,7 +71,7 @@ const recipesSchema = new Schema({
   ServingSize: {
     type: String,
   },
-  Approve: {
+  Approved: {
     type: Number,
   },
   Image: {
