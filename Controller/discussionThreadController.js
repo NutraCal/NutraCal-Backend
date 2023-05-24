@@ -81,6 +81,10 @@ exports.viewDiscussionThreadByTitle = catchAsync(async (req, res, next) => {
 //Route for delete discussionThread
 exports.deleteDiscussionThread = catchAsync(async (req, res, next) => {
   try {
+    const thread = await DiscussionThreads.findOne({ Title: req.body.title });
+    if (!thread) {
+      return res.status(400).send("Thread not found");
+    }
     DiscussionThreads.deleteOne(
       { Title: req.body.title },
       function (err, results) {

@@ -2,6 +2,7 @@ let config = require("../config");
 const catchAsync = require("../utils/catchAsync");
 const Recipes = require("../Models/recipes");
 const User = require("../Models/user");
+const Admin = require("../Models/admin");
 const vision = require("@google-cloud/vision");
 const fs = require("fs");
 
@@ -69,7 +70,19 @@ exports.addRecipe = catchAsync(async (req, res, next) => {
   ) {
     return res.status(400).send("Please fill all the fields");
   }
-
+  let currUser = await User.findById(user);
+  if (!currUser) {
+    currUser = await Admin.findById(user);
+  }
+  if (!currUser) {
+    return res.status(404).send("User not found");
+  }
+  const role = currUser.role;
+  let approved = 1;
+  console.log(role);
+  if (role === "User") {
+    approved = 0;
+  }
   const recipe = new Recipes({
     User: user,
     Title: title,
@@ -83,6 +96,7 @@ exports.addRecipe = catchAsync(async (req, res, next) => {
     Carbs: carbs,
     Allergies: allergies,
     ServingSize: servingSize,
+    Approve: approved,
   });
   if (req.file) {
     console.log("Storing Image");
@@ -103,17 +117,15 @@ exports.addRecipe = catchAsync(async (req, res, next) => {
 
 exports.viewRecipes = catchAsync(async (req, res, next) => {
   try {
-    Recipes.find()
-      .populate("User")
-      .exec((error, result) => {
-        if (error) {
-          res.status(500).send(error);
-        } else {
-          res.status(200).json(result);
-        }
-      });
-  } catch (err) {
-    res.status(500).send(err.message);
+    Recipes.find({ Approve: 1 }).exec(async function (error, results) {
+      if (error) {
+        return res.status(500).json({ msg: "Unable to find recipes" });
+      }
+      // Respond with valid data
+      res.status(200).json(results);
+    });
+  } catch (error) {
+    return res.status(400).json({ message: "Error viewing recipes" });
   }
 });
 
@@ -129,11 +141,15 @@ exports.viewRecipeByName = catchAsync(async (req, res, next) => {
 
 exports.deleteRecipe = catchAsync(async (req, res, next) => {
   try {
+    const recipe = await Recipes.findOne({ Title: req.body.title });
+    if (!recipe) {
+      return res.status(400).send("Recipe not found");
+    }
     Recipes.deleteOne({ Title: req.body.title }, function (err, result) {
       if (err) {
         res.status(500).send(err);
       }
-      res.status(200).json(result);
+      res.status(200).json({ message: "Recipe deleted successfully" });
     });
   } catch (err) {
     res.status(500).send(err.message);
@@ -178,7 +194,7 @@ exports.approveRecipe = catchAsync(async (req, res, next) => {
   Recipes.findOneAndUpdate(
     { _id: req.body.recipeId },
     {
-      Approved: 1,
+      Approve: 1,
     },
     function (err, result) {
       if (err) {
@@ -346,7 +362,7 @@ exports.likeRecipe = catchAsync(async (req, res, next) => {
 
 exports.viewAllUnapproved = catchAsync(async (req, res, next) => {
   try {
-    Recipes.find({ Approved: 0 }).exec(async function (error, results) {
+    Recipes.find({ Approve: 0 }).exec(async function (error, results) {
       if (error) {
         return res.status(500).json({ msg: "Unable to find recipes" });
       }

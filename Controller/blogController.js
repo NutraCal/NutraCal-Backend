@@ -4,6 +4,8 @@ let config = require("../config");
 const catchAsync = require("../utils/catchAsync");
 const Blogs = require("../Models/blogs");
 const Users = require("../Models/user");
+const Admin = require("../Models/admin");
+const Nutritionist = require("../Models/nutritionist");
 const multer = require("multer");
 
 exports.postBlog = catchAsync(async (req, res, next) => {
@@ -16,12 +18,25 @@ exports.postBlog = catchAsync(async (req, res, next) => {
       .status(400)
       .json({ message: "Blog with similar title already exists" });
   }
+  let currUser = await Nutritionist.findById(req.body.userId);
+  if (!currUser) {
+    currUser = await Admin.findById(req.body.userId);
+  }
+  if (!currUser) {
+    return res.status(404).send("User not found");
+  }
+  const role = currUser.role;
+  let approved = 1;
+  console.log(role);
+  if (role === "Nutritionist") {
+    approved = 0;
+  }
   // Create a new blog post document
   const blogPost = new Blogs({
     User: req.body.userId,
     Title: req.body.title,
     Content: req.body.content,
-    Approved: 0,
+    Approved: approved,
   });
 
   // If an image was uploaded, store its metadata in the blog post document
@@ -78,6 +93,13 @@ exports.viewBlogByTitle = catchAsync(async (req, res, next) => {
 //Route for delete blog
 exports.deleteBlog = catchAsync(async (req, res, next) => {
   try {
+    if (!req.body.title) {
+      return res.status(404).send("Kindly provide the title");
+    }
+    const blog = await Blogs.findOne({ Title: req.body.title });
+    if (!blog) {
+      return res.status(400).send("Blog not found");
+    }
     Blogs.deleteOne({ Title: req.body.title }, function (err, results) {
       if (err) return res.status(500).json({ message: "Error deleting blog" });
       res.status(200).json({ message: "Blog deleted successfully" });
@@ -90,6 +112,9 @@ exports.deleteBlog = catchAsync(async (req, res, next) => {
 //Route to edit blog
 exports.editBlog = catchAsync(async (req, res, next) => {
   try {
+    if (!req.body.blogId || !req.body.title || !req.body.content) {
+      return res.status(404).send("Kindly provide the details of the blog");
+    }
     Blogs.findOneAndUpdate(
       { _id: req.body.blogId },
       {
@@ -136,7 +161,6 @@ exports.approveBlog = catchAsync(async (req, res, next) => {
 //Admin can provide remarks on blog while rejecting any blog written by user
 exports.rejectBlog = catchAsync(async (req, res, next) => {
   try {
-    console.log(req.body);
     if (!req.body.title) {
       return res
         .status(404)
@@ -251,6 +275,9 @@ exports.editComment = catchAsync(async (req, res, next) => {
     const commentId = req.body.commentId;
     const newComment = req.body.newComment;
     const title = req.body.title;
+    if (!req.body.commentId || !req.body.title) {
+      return res.status(404).send("Kindly provide all fields");
+    }
 
     if (!newComment) {
       return res.status(400).json({ message: "New comment cannot be empty" });
@@ -276,6 +303,9 @@ exports.editComment = catchAsync(async (req, res, next) => {
 // Route for deleting a comment on a blog post
 exports.deleteComment = catchAsync(async (req, res, next) => {
   try {
+    if (!req.body.commentId || !req.body.title) {
+      return res.status(404).send("Kindly provide all fields");
+    }
     const commentId = req.body.commentId;
     const title = req.body.title;
 
