@@ -175,11 +175,10 @@ exports.updateLikes = catchAsync(async (req, res, next) => {
 });
 
 exports.approveRecipe = catchAsync(async (req, res, next) => {
-  const appStatus = 1;
   Recipes.findOneAndUpdate(
     { _id: req.body.recipeId },
     {
-      approved: appStatus,
+      Approved: 1,
     },
     function (err, result) {
       if (err) {
@@ -342,5 +341,19 @@ exports.likeRecipe = catchAsync(async (req, res, next) => {
     });
   } catch (err) {
     return res.status(400).json({ message: err.message });
+  }
+});
+
+exports.viewAllUnapproved = catchAsync(async (req, res, next) => {
+  try {
+    Recipes.find({ Approved: 0 }).exec(async function (error, results) {
+      if (error) {
+        return res.status(500).json({ msg: "Unable to find recipes" });
+      }
+      // Respond with valid data
+      res.status(200).json(results);
+    });
+  } catch (error) {
+    return res.status(400).json({ message: "Error viewing recipes" });
   }
 });

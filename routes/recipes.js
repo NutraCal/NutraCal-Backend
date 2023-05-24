@@ -24,6 +24,7 @@ const upload = multer({
 //multer image storing for blogs
 router.post("/addRecipe", upload.single("photo"), recipeController.addRecipe);
 router.get("/viewRecipes", recipeController.viewRecipes);
+router.get("/viewAllUnapproved", recipeController.viewAllUnapproved);
 router.post("/viewRecipeByName", recipeController.viewRecipeByName); //TO THIS
 router.post("/detectText", upload.single("photo"), recipeController.detectText);
 router.put("/editRecipe", recipeController.editRecipe);

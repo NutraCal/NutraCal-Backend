@@ -73,7 +73,6 @@ const recipesSchema = new Schema({
   },
   Approved: {
     type: Number,
-    default: 0,
   },
   Image: {
     filename: {
