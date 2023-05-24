@@ -446,7 +446,7 @@ exports.likeBlog = catchAsync(async (req, res, next) => {
 
     res.status(200).json({
       message: "Blog post likes saved successfully",
-      likesCount: updatedBlogPost.LikesCount.length + 1,
+      likesCount: updatedBlogPost.LikesCount.length,
     });
   } catch (err) {
     return res.status(400).json({ message: err.message });

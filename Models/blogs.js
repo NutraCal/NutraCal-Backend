@@ -46,8 +46,8 @@ const blogsSchema = new Schema({
   LikesCount: {
     type: [
       {
-        user: {
-          type: User.schema, // Embed the user schema directly
+        email: {
+          type: String,
         },
         like: {
           type: Number,
