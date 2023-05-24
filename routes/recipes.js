@@ -33,6 +33,7 @@ router.put("/approveRecipe", recipeController.approveRecipe);
 router.delete("/deleteRecipe", recipeController.deleteRecipe);
 router.post("/filterRecipe", recipeController.filterRecipe);
 router.post("/userRecipes", recipeController.userRecipes);
+router.post("/userUnapprovedRecipes", recipeController.userUnapprovedRecipes);
 router.post("/searchRecipes", recipeController.searchRecipes);
 router.post("/findCalories", recipeController.findCalories);
 router.post("/likeRecipe", recipeController.likeRecipe);

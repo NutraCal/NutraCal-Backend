@@ -282,7 +282,19 @@ exports.userRecipes = catchAsync(async (req, res, next) => {
     const user = await User.findOne({ email: req.body.email });
     const userId = user._id;
     console.log(userId);
-    recipes = await Recipes.find({ User: userId });
+    recipes = await Recipes.find({ User: userId, Approve: 1 });
+    res.json(recipes);
+  } catch (err) {
+    console.error(err.message);
+  }
+});
+exports.userUnapprovedRecipes = catchAsync(async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email: req.body.email });
+    const userId = user._id;
+    console.log(userId);
+    recipes = await Recipes.find({ User: userId, Approve: 0 });
     res.json(recipes);
   } catch (err) {
     console.error(err.message);
