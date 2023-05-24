@@ -86,6 +86,7 @@ exports.signupAdmin = catchAsync(async (req, res, next) => {
     name: name,
     email: email,
     password: hashPassword,
+    role: "Admin",
   });
   if (req.file) {
     console.log("Storing Image");

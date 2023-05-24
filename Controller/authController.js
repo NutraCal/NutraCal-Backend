@@ -5,6 +5,7 @@ const bcrypt = require("bcrypt");
 let config = require("../config");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
+const Admin = require("../Models/admin");
 const factory = require("./handlerFactory");
 
 const signToken = (id) => {
@@ -51,6 +52,9 @@ exports.verifyToken = catchAsync(async (req, res, next) => {
         currentUser = await Nutritionist.findById(decoded.id);
       }
       if (!currentUser) {
+        currentUser = await Admin.findById(decoded.id);
+      }
+      if (!currentUser) {
         return res.status(400).send("User doesn't exist");
       }
 
@@ -58,6 +62,7 @@ exports.verifyToken = catchAsync(async (req, res, next) => {
         status: "success",
         data: {
           user: currentUser,
+          role: currentUser.role,
         },
       });
     } catch (err) {
